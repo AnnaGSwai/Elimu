@@ -46,7 +46,7 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(120))
     email = db.Column(db.String(120))
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)
-    active = db.Column(db.Boolean, default=True)
+    active = db.Column(db.Integer, default=1)
 
     def set_password(self, pw): self.password_hash = generate_password_hash(pw)
     def check_password(self, pw): return check_password_hash(self.password_hash, pw)
@@ -58,7 +58,7 @@ class School(db.Model):
     address = db.Column(db.String(200))
     phone = db.Column(db.String(20))
     email = db.Column(db.String(120))
-    active = db.Column(db.Boolean, default=True)
+    active = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Student(db.Model):
@@ -71,7 +71,7 @@ class Student(db.Model):
     gender = db.Column(db.String(10))
     parent_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'))
-    active = db.Column(db.Boolean, default=True)
+    active = db.Column(db.Integer, default=1)
 
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
