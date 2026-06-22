@@ -903,12 +903,11 @@ def seed():
     db.session.commit()
     print("✅ Database seeded successfully!")
 
-# Ensure tables exist on import (covers Vercel serverless)
+# Ensure tables exist and seed if empty (covers Vercel serverless)
 with app.app_context():
     db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        seed()
 
 if __name__ == '__main__':
-    with app.app_context():
-        if not User.query.filter_by(username='admin').first():
-            seed()
     app.run(debug=True, port=5000)
