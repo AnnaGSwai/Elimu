@@ -11,8 +11,8 @@ from reportlab.lib.units import cm
 import io, random, string, os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'elimu-secret-2025'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///elimu.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'elimu-secret-2025')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///elimu.db').replace('postgres://', 'postgresql://')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
