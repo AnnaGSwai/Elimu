@@ -12,7 +12,7 @@ import io, random, string, os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'elimu-secret-2025')
-_db_url = os.environ.get('DATABASE_URL', 'sqlite:///elimu.db')
+_db_url = os.environ.get('DATABASE_URL', 'sqlite:////tmp/elimu.db')
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 if 'postgresql' in _db_url and 'sslmode' not in _db_url:
@@ -24,16 +24,20 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# Lazy DB init for serverless (Vercel)
-_initialized = False
+# On first request, ensure tables and seed data exist
+_db_ready = False
 @app.before_request
-def init_db():
-    global _initialized
-    if not _initialized:
-        db.create_all()
-        if not User.query.filter_by(username='admin').first():
-            seed()
-        _initialized = True
+def _ensure_db():
+    global _db_ready
+    if not _db_ready:
+        try:
+            db.create_all()
+            if not User.query.filter_by(username='admin').first():
+                seed()
+        except Exception as ex:
+            print(f"[ELIMU] DB init failed: {ex}")
+            return None  # Let the request proceed, will fail with 500 if DB is down
+        _db_ready = True
 
 # ─── MODELS ───────────────────────────────────────────────────────────────────
 
