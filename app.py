@@ -12,12 +12,28 @@ import io, random, string, os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'elimu-secret-2025')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///elimu.db').replace('postgres://', 'postgresql://')
+_db_url = os.environ.get('DATABASE_URL', 'sqlite:///elimu.db')
+if _db_url.startswith('postgres://'):
+    _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+if 'postgresql' in _db_url and 'sslmode' not in _db_url:
+    _db_url += ('&' if '?' in _db_url else '?') + 'sslmode=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+# Lazy DB init for serverless (Vercel)
+_initialized = False
+@app.before_request
+def init_db():
+    global _initialized
+    if not _initialized:
+        db.create_all()
+        if not User.query.filter_by(username='admin').first():
+            seed()
+        _initialized = True
 
 # ─── MODELS ───────────────────────────────────────────────────────────────────
 
@@ -903,11 +919,9 @@ def seed():
     db.session.commit()
     print("✅ Database seeded successfully!")
 
-# Ensure tables exist and seed if empty (covers Vercel serverless)
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        seed()
-
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        if not User.query.filter_by(username='admin').first():
+            seed()
     app.run(debug=True, port=5000)
