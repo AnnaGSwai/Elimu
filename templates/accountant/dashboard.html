@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Accountant — Elimu{% endblock %}
+{% block page_title %}Finance Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon green">🧾</div>
+    <div><div class="stat-label">Total Invoiced</div><div class="stat-value">{{ '{:,.0f}'.format(total_billed) }}</div><div class="stat-sub">TZS</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue">💰</div>
+    <div><div class="stat-label">Total Collected</div><div class="stat-value">{{ '{:,.0f}'.format(total_paid) }}</div><div class="stat-sub">TZS</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">⏳</div>
+    <div><div class="stat-label">Outstanding</div><div class="stat-value">{{ '{:,.0f}'.format(total_billed - total_paid) }}</div><div class="stat-sub">TZS</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">📋</div>
+    <div><div class="stat-label">Invoices</div><div class="stat-value">{{ invoices|length }}</div><div class="stat-sub">{{ invoices|selectattr('status','equalto','paid')|list|length }} paid</div></div>
+  </div>
+</div>
+
+<div class="grid-2" style="gap:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🧾 Recent Invoices</div>
+      <a href="{{ url_for('manage_invoices') }}" class="btn btn-primary btn-sm">Manage</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Invoice</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for inv in invoices[-6:]|reverse %}
+          <tr>
+            <td><code>{{ inv.invoice_number }}</code><br><small>{{ inv.description[:30] }}</small></td>
+            <td>TZS {{ '{:,.0f}'.format(inv.amount) }}</td>
+            <td><span class="badge {% if inv.status=='paid' %}badge-success{% elif inv.status=='partial' %}badge-warning{% else %}badge-danger{% endif %}">{{ inv.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">💳 Recent Payments</div>
+      <a href="{{ url_for('manage_payments') }}" class="btn btn-primary btn-sm">View All</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Receipt</th><th>Amount</th><th>Method</th></tr></thead>
+        <tbody>
+          {% for p in payments[-6:]|reverse %}
+          {% if p.receipt_number %}
+          <tr>
+            <td><code>{{ p.receipt_number }}</code></td>
+            <td>TZS {{ '{:,.0f}'.format(p.amount_paid) }}</td>
+            <td>{{ p.payment_method }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

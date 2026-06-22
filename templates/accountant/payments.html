@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Payments — Elimu{% endblock %}
+{% block page_title %}Payments & Receipts{% endblock %}
+{% block content %}
+{% if pending %}
+<div style="margin-bottom:20px">
+  <div class="card-title" style="margin-bottom:12px">⏳ Pending Payments (Control Numbers Issued)</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Control Number</th><th>Student</th><th>Invoice Amount</th><th>Record Payment</th></tr></thead>
+        <tbody>
+          {% for p in pending %}
+          {% set inv = invoices.get(p.invoice_id) %}
+          {% set student = students.get(inv.student_id) if inv else None %}
+          <tr>
+            <td><code style="font-size:13px;background:#fff3cd;padding:3px 8px;border-radius:4px">{{ p.control_number }}</code></td>
+            <td>{{ student.full_name if student else '—' }}<br><small>{{ student.adm_number if student else '' }}</small></td>
+            <td>TZS {{ '{:,.0f}'.format(inv.amount) if inv else '—' }}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="openPayModal('{{ p.id }}','{{ p.control_number }}','{{ student.full_name if student else '' }}','{{ inv.amount if inv else 0 }}')">💳 Record</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="page-header">
+  <h2>💳 Payment History</h2>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Receipt No.</th><th>Control No.</th><th>Student</th><th>Amount Paid</th><th>Method</th><th>Date</th><th>PDF</th></tr></thead>
+      <tbody>
+        {% for p in payments %}
+        {% if p.receipt_number %}
+        {% set inv = invoices.get(p.invoice_id) %}
+        {% set student = students.get(inv.student_id) if inv else None %}
+        <tr>
+          <td><code>{{ p.receipt_number }}</code></td>
+          <td><code>{{ p.control_number }}</code></td>
+          <td>{{ student.full_name if student else '—' }}</td>
+          <td><strong>TZS {{ '{:,.0f}'.format(p.amount_paid) }}</strong></td>
+          <td><span class="badge badge-info">{{ p.payment_method }}</span></td>
+          <td>{{ p.paid_at.strftime('%d %b %Y') if p.paid_at else '—' }}</td>
+          <td><a href="{{ url_for('download_receipt', pay_id=p.id) }}" class="btn btn-sm btn-secondary" target="_blank">📄 PDF</a></td>
+        </tr>
+        {% endif %}
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state"><div class="icon">💳</div><p>No payments recorded yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Record Payment</h3>
+      <button class="modal-close" onclick="closeModal('payModal')">✕</button>
+    </div>
+    <form id="payForm" method="POST">
+      <div class="modal-body">
+        <div style="background:var(--green-light);padding:12px;border-radius:8px;margin-bottom:14px">
+          <div style="font-size:12px;color:#6b7280">Control Number</div>
+          <div style="font-weight:700;font-size:16px;color:var(--green)" id="modal-cn"></div>
+          <div style="font-size:12px;margin-top:4px" id="modal-student"></div>
+        </div>
+        <div class="form-group"><label>Amount Paid (TZS)</label><input name="amount_paid" type="number" step="1000" id="modal-amount" required></div>
+        <div class="form-group"><label>Payment Method</label>
+          <select name="payment_method" required>
+            <option value="M-Pesa">M-Pesa</option>
+            <option value="Airtel Money">Airtel Money</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Cash">Cash</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('payModal')">Cancel</button>
+        <button class="btn btn-primary">✅ Confirm Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function openPayModal(pid, cn, student, amount){
+  document.getElementById('payForm').action = '/accountant/record-payment/' + pid;
+  document.getElementById('modal-cn').textContent = cn;
+  document.getElementById('modal-student').textContent = 'Student: ' + student;
+  document.getElementById('modal-amount').value = amount;
+  openModal('payModal');
+}
+</script>
+{% endblock %}

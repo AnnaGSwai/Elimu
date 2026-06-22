@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elimu System — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f7f3;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-wrap{display:flex;width:840px;max-width:98vw;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12)}
+.login-left{background:#1a6e3c;flex:1;padding:48px 40px;color:white;display:flex;flex-direction:column;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:40px}
+.brand-icon{width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.brand-name{font-size:22px;font-weight:700}
+.brand-sub{font-size:12px;opacity:.7}
+.login-left h1{font-size:32px;font-weight:700;line-height:1.2;margin-bottom:12px}
+.login-left p{opacity:.8;font-size:14px;line-height:1.6}
+.roles{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.role-badge{background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600}
+.login-right{background:white;width:360px;padding:48px 36px}
+.login-right h2{font-size:22px;font-weight:700;margin-bottom:6px}
+.login-right p{color:#6b7280;font-size:13px;margin-bottom:28px}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+input{width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:9px;font-family:inherit;font-size:14px;outline:none;transition:border .15s}
+input:focus{border-color:#1a6e3c;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
+.btn-login{width:100%;padding:12px;background:#1a6e3c;color:white;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;transition:background .15s}
+.btn-login:hover{background:#2d8f55}
+.alert{padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;background:#fde8e8;color:#c0392b;border:1px solid #f5c6c6}
+.demo-box{margin-top:24px;background:#f8fafc;border-radius:10px;padding:14px}
+.demo-box h4{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.demo-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;cursor:pointer;padding:3px 0}
+.demo-row:hover{color:#1a6e3c}
+.demo-role{font-weight:600;color:#374151}
+.demo-cred{color:#6b7280;font-family:monospace}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-left">
+    <div>
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <div class="brand-name">Elimu System</div>
+          <div class="brand-sub">School Management Platform</div>
+        </div>
+      </div>
+      <h1>Manage your school smarter</h1>
+      <p>A complete platform for schools — from admissions and fees to academic results and parent communication.</p>
+      <div class="roles">
+        <div class="role-badge">📊 System Admin</div>
+        <div class="role-badge">🏫 School Admin</div>
+        <div class="role-badge">💳 Accountant</div>
+        <div class="role-badge">✏️ Teacher</div>
+        <div class="role-badge">👨‍👩‍👧 Parent</div>
+        <div class="role-badge">📋 Results & Reports</div>
+      </div>
+    </div>
+    <div style="opacity:.5;font-size:11px">© 2025 Elimu System Tanzania</div>
+  </div>
+  <div class="login-right">
+    <h2>Welcome back</h2>
+    <p>Sign in to your account</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="alert">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="POST">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" id="un" placeholder="Enter your username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" id="pw" placeholder="••••••••" required>
+      </div>
+      <button class="btn-login">Sign In →</button>
+    </form>
+    <div class="demo-box">
+      <h4>Demo Accounts — click to fill</h4>
+      <div class="demo-row" onclick="fill('admin','admin123')"><span class="demo-role">System Admin</span><span class="demo-cred">admin / admin123</span></div>
+      <div class="demo-row" onclick="fill('schooladmin','admin123')"><span class="demo-role">School Admin</span><span class="demo-cred">schooladmin / admin123</span></div>
+      <div class="demo-row" onclick="fill('accountant','acc123')"><span class="demo-role">Accountant</span><span class="demo-cred">accountant / acc123</span></div>
+      <div class="demo-row" onclick="fill('teacher1','teacher123')"><span class="demo-role">Teacher</span><span class="demo-cred">teacher1 / teacher123</span></div>
+      <div class="demo-row" onclick="fill('parent1','parent123')"><span class="demo-role">Parent</span><span class="demo-cred">parent1 / parent123</span></div>
+    </div>
+    <div style="text-align:center;margin-top:18px;font-size:13px;color:#6b7280">
+      Don't have an account? <a href="{{ url_for('register') }}" style="color:#1a6e3c;font-weight:700;text-decoration:none">Create an account →</a>
+    </div>
+  </div>
+</div>
+<script>
+function fill(u,p){document.getElementById('un').value=u;document.getElementById('pw').value=p}
+</script>
+</body>
+</html>

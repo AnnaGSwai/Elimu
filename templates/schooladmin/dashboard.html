@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}School Admin — Elimu{% endblock %}
+{% block page_title %}School Dashboard{% endblock %}
+{% block content %}
+<div style="margin-bottom:20px;padding:16px 20px;background:var(--green-light);border-radius:var(--radius);border-left:4px solid var(--green)">
+  <strong style="color:var(--green)">🏫 {{ school.name }}</strong>
+  <span style="color:#6b7280;font-size:13px;margin-left:12px">{{ school.reg_number }} | {{ school.address }}</span>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon green">🧑‍🎓</div>
+    <div><div class="stat-label">Students</div><div class="stat-value">{{ students|length }}</div><div class="stat-sub">Enrolled</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue">👨‍🏫</div>
+    <div><div class="stat-label">Teachers</div><div class="stat-value">{{ teachers|length }}</div><div class="stat-sub">Active staff</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">📚</div>
+    <div><div class="stat-label">Subjects</div><div class="stat-value">{{ subjects|length }}</div><div class="stat-sub">Registered</div></div>
+  </div>
+</div>
+
+<div class="grid-2" style="gap:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🧑‍🎓 Recent Students</div>
+      <a href="{{ url_for('manage_students') }}" class="btn btn-primary btn-sm">View All</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Adm No.</th><th>Class</th></tr></thead>
+        <tbody>
+          {% for s in students[-6:]|reverse %}
+          <tr>
+            <td>{{ s.full_name }}</td>
+            <td><code>{{ s.adm_number }}</code></td>
+            <td>{{ s.class_name }} {{ s.stream }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📚 Subjects</div>
+      <a href="{{ url_for('manage_subjects') }}" class="btn btn-primary btn-sm">Manage</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Subject</th><th>Code</th><th>Teacher</th></tr></thead>
+        <tbody>
+          {% for subj in subjects %}
+          {% set teacher = teachers|selectattr('id','equalto', subj.teacher_id)|first %}
+          <tr>
+            <td>{{ subj.name }}</td>
+            <td><span class="badge badge-info">{{ subj.code }}</span></td>
+            <td>{{ teacher.full_name if teacher else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

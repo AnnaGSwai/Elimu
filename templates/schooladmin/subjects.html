@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Subjects — Elimu{% endblock %}
+{% block page_title %}Subject Management{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>📚 Subjects</h2>
+  <button class="btn btn-primary" onclick="openModal('addSubject')">+ Add Subject</button>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Subject Name</th><th>Code</th><th>Assigned Teacher</th></tr></thead>
+      <tbody>
+        {% for subj in subjects %}
+        {% set teacher = teachers|selectattr('id','equalto',subj.teacher_id)|first %}
+        <tr>
+          <td><strong>{{ subj.name }}</strong></td>
+          <td><span class="badge badge-info">{{ subj.code }}</span></td>
+          <td>{{ teacher.full_name if teacher else '<span class="badge badge-warning">Unassigned</span>'|safe }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3"><div class="empty-state"><div class="icon">📚</div><p>No subjects added yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addSubject">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Subject</h3>
+      <button class="modal-close" onclick="closeModal('addSubject')">✕</button>
+    </div>
+    <form method="POST">
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group"><label>Subject Name</label><input name="name" required placeholder="e.g. Mathematics"></div>
+          <div class="form-group"><label>Code</label><input name="code" required placeholder="e.g. MATH"></div>
+        </div>
+        <div class="form-group"><label>Assign Teacher</label>
+          <select name="teacher_id">
+            <option value="">— Assign later —</option>
+            {% for t in teachers %}<option value="{{ t.id }}">{{ t.full_name }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addSubject')">Cancel</button>
+        <button class="btn btn-primary">Add Subject</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

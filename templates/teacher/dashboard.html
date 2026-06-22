@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Teacher — Elimu{% endblock %}
+{% block page_title %}Teacher Dashboard{% endblock %}
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">📚</div>
+    <div><div class="stat-label">My Subjects</div><div class="stat-value">{{ subjects|length }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✏️</div>
+    <div><div class="stat-label">Marks Entered</div><div class="stat-value">{{ marks|length }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">📅</div>
+    <div><div class="stat-label">Timetable Slots</div><div class="stat-value">{{ timetable|length }}</div></div>
+  </div>
+</div>
+
+<div class="grid-2" style="gap:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📚 My Subjects</div>
+      <a href="{{ url_for('manage_marks') }}" class="btn btn-primary btn-sm">Enter Marks</a>
+    </div>
+    {% for subj in subjects %}
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span class="badge badge-info">{{ subj.code }}</span>
+      <span>{{ subj.name }}</span>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="icon">📚</div><p>No subjects assigned yet.</p></div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📅 Today's Lessons</div>
+      <a href="{{ url_for('manage_timetable') }}" class="btn btn-secondary btn-sm">Full Timetable</a>
+    </div>
+    {% set today = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][now.weekday() if now is defined else 0] %}
+    {% set shown = [] %}
+    {% for tt in timetable %}
+    {% set subj = namespace(name='') %}
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div><strong>{{ tt.day }}</strong> · {{ tt.start_time }}–{{ tt.end_time }}<br><small style="color:#6b7280">{{ tt.class_name }} {{ tt.stream }}</small></div>
+      <span class="badge badge-success">{{ tt.start_time }}</span>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="icon">📅</div><p>No timetable slots added.</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

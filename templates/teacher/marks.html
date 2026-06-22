@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% block title %}Enter Marks — Elimu{% endblock %}
+{% block page_title %}Mark Entry{% endblock %}
+{% block content %}
+
+<style>
+.filter-card{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:24px}
+.filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filter-row .fg{flex:1;min-width:130px;margin:0}
+.filter-row label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.filter-row select,.filter-row input{padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;color:#1c1c1e;background:#fafafa;width:100%;outline:none;transition:border .15s}
+.filter-row select:focus,.filter-row input:focus{border-color:#1a6e3c;background:#fff;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
+
+/* Marklist table */
+.ml-wrap{overflow-x:auto;border-radius:12px;border:1px solid #e5e7eb}
+.ml-table{width:100%;border-collapse:collapse;min-width:500px}
+.ml-table thead tr th{background:#1a6e3c;color:white;padding:12px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;text-align:left}
+.ml-table thead tr th:last-child{text-align:center}
+.ml-table tbody tr{transition:background .1s}
+.ml-table tbody tr:hover{background:#f8fff9}
+.ml-table tbody tr:nth-child(even){background:#fafcfb}
+.ml-table tbody tr:hover{background:#edf7f1}
+.ml-table td{padding:10px 14px;border-bottom:1px solid #f0f0f0;font-size:13px;vertical-align:middle}
+.ml-table tr:last-child td{border-bottom:none}
+.rank-num{width:30px;height:30px;background:#f3f4f6;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6b7280}
+.score-input{width:80px;padding:7px 10px;border:1.5px solid #d1fae5;border-radius:8px;font-size:14px;font-weight:600;text-align:center;font-family:inherit;color:#1c1c1e;background:#f0fdf4;outline:none;transition:all .15s}
+.score-input:focus{border-color:#1a6e3c;background:white;box-shadow:0 0 0 3px rgba(26,110,60,.1)}
+.score-input.has-value{background:white;border-color:#1a6e3c}
+.score-input.invalid{border-color:#ef4444;background:#fef2f2}
+.grade-pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;min-width:36px;text-align:center;transition:all .2s}
+.gA{background:#e8f5ee;color:#1a6e3c}
+.gB{background:#e8f0fe;color:#1967d2}
+.gC{background:#fef3e2;color:#d97706}
+.gD{background:#fff3e0;color:#ea8c2a}
+.gF{background:#fde8e8;color:#c0392b}
+
+/* Save bar */
+.save-bar{position:sticky;bottom:16px;z-index:50;display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid #e5e7eb;border-radius:12px;padding:14px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.12);margin-top:16px}
+.save-count{font-size:13px;color:#6b7280}
+.save-count strong{color:#1a6e3c;font-size:15px}
+
+/* Recent log */
+.log-table th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#9ca3af;padding:8px 12px;border-bottom:1px solid #f0f0f0;background:#fafafa;text-align:left}
+.log-table td{padding:9px 12px;border-bottom:1px solid #f5f5f5;font-size:12px}
+.log-table tr:last-child td{border-bottom:none}
+
+.exam-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0}
+.exam-tab{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid transparent;text-decoration:none;transition:all .15s;color:#6b7280;background:#f3f4f6}
+.exam-tab.active,.exam-tab:hover{background:#1a6e3c;color:white;border-color:#1a6e3c}
+</style>
+
+<div class="page-header">
+  <div>
+    <h2 style="font-size:22px;font-weight:800">✏️ Mark Entry</h2>
+    <p style="color:#6b7280;font-size:13px;margin-top:2px">Enter marks by selecting subject, class and exam type</p>
+  </div>
+</div>
+
+<!-- Filter Panel -->
+<div class="filter-card">
+  <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:#1c1c1e">🔍 Load Marklist</div>
+  <form method="GET" id="filterForm">
+    <div class="filter-row">
+      <div class="fg">
+        <label>Subject</label>
+        <select name="subject_id" id="sel_subject" onchange="this.form.submit()">
+          <option value="">Select subject...</option>
+          {% for subj in subjects %}
+          <option value="{{ subj.id }}" {{ 'selected' if sel_subject == subj.id }}>{{ subj.name }} ({{ subj.code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Class</label>
+        <select name="class_name" onchange="this.form.submit()">
+          <option value="">Select class...</option>
+          {% for c in classes %}
+          <option value="{{ c }}" {{ 'selected' if sel_class == c }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Term</label>
+        <select name="term" onchange="this.form.submit()">
+          {% for t in ['Term 1','Term 2','Term 3'] %}
+          <option {{ 'selected' if sel_term == t }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg" style="max-width:100px">
+        <label>Year</label>
+        <input type="number" name="year" value="{{ sel_year }}" min="2020" max="2035" onchange="this.form.submit()">
+      </div>
+    </div>
+  </form>
+
+  {% if sel_subject and sel_class %}
+  <!-- Exam type tabs -->
+  <div style="margin-top:16px;border-top:1px solid #f0f0f0;padding-top:14px">
+    <div style="font-size:12px;font-weight:600;color:#6b7280;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Select Exam Type</div>
+    <div class="exam-tabs">
+      {% for et in ['CAT 1','CAT 2','Midterm','Final'] %}
+      <a href="{{ url_for('manage_marks', subject_id=sel_subject, class_name=sel_class, exam_type=et, term=sel_term, year=sel_year) }}"
+         class="exam-tab {{ 'active' if sel_exam == et }}">{{ et }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Marklist Entry -->
+{% if marklist_students %}
+{% set subj_obj = subjects | selectattr('id', 'equalto', sel_subject) | first %}
+<div class="card" style="padding:0;overflow:hidden;margin-bottom:24px">
+  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-weight:700;font-size:15px">
+        📋 {{ subj_obj.name if subj_obj else '' }} — {{ sel_class }} — 
+        <span style="color:#1a6e3c">{{ sel_exam }}</span>
+      </div>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px">{{ sel_term }} {{ sel_year }} · {{ marklist_students|length }} students</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="font-size:12px;color:#6b7280" id="filledCount">—</div>
+    </div>
+  </div>
+  <form method="POST" id="bulkForm">
+    <input type="hidden" name="form_type" value="bulk">
+    <input type="hidden" name="subject_id" value="{{ sel_subject }}">
+    <input type="hidden" name="class_name" value="{{ sel_class }}">
+    <input type="hidden" name="exam_type" value="{{ sel_exam }}">
+    <input type="hidden" name="term" value="{{ sel_term }}">
+    <input type="hidden" name="year" value="{{ sel_year }}">
+
+    <!-- Top save bar -->
+    <div style="padding:12px 20px;background:#f8fff9;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+      <div class="save-count">📝 Fill scores below (0–100). Leave blank to skip.</div>
+      <button type="submit" class="btn btn-primary" style="padding:9px 20px">💾 Save All Marks</button>
+    </div>
+
+    <div class="ml-wrap" style="border-radius:0;border:none">
+      <table class="ml-table">
+        <thead>
+          <tr>
+            <th style="width:46px">#</th>
+            <th>Student Name</th>
+            <th>Adm No.</th>
+            <th>Gender</th>
+            <th style="text-align:center">Score /100</th>
+            <th style="text-align:center;width:80px">Grade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stud in marklist_students %}
+          {% set existing = existing_marks.get(stud.id) %}
+          <tr>
+            <td><div class="rank-num">{{ loop.index }}</div></td>
+            <td><strong>{{ stud.full_name }}</strong></td>
+            <td><code style="font-size:11px;color:#6b7280">{{ stud.adm_number }}</code></td>
+            <td>
+              <span style="font-size:13px">{{ '♂' if stud.gender=='M' else '♀' }}</span>
+              <span style="font-size:12px;color:#6b7280">{{ stud.gender }}</span>
+            </td>
+            <td style="text-align:center">
+              <input type="number" name="score_{{ stud.id }}"
+                     class="score-input {{ 'has-value' if existing is not none }}"
+                     id="inp_{{ stud.id }}"
+                     value="{{ existing if existing is not none else '' }}"
+                     min="0" max="100" step="0.5" placeholder="—"
+                     oninput="updateGrade({{ stud.id }}, this.value)">
+            </td>
+            <td style="text-align:center">
+              <span class="grade-pill {{ 'g' + grade(existing) if existing is not none else '' }}" id="grd_{{ stud.id }}">
+                {{ grade(existing) if existing is not none else '—' }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bottom save bar -->
+    <div class="save-bar">
+      <div class="save-count">
+        <strong id="bottomCount">0</strong> scores filled
+      </div>
+      <button type="submit" class="btn btn-primary">💾 Save All Marks</button>
+    </div>
+  </form>
+</div>
+
+{% elif sel_subject or sel_class %}
+<div class="card" style="text-align:center;padding:40px 24px;color:#6b7280;margin-bottom:24px">
+  <div style="font-size:40px;margin-bottom:12px">🔍</div>
+  <p style="font-size:14px">Select both a <strong>subject</strong> and a <strong>class</strong> to load the marklist.</p>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:48px 24px;color:#6b7280;margin-bottom:24px;border:2px dashed #d1fae5">
+  <div style="font-size:44px;margin-bottom:14px">✏️</div>
+  <div style="font-size:16px;font-weight:700;color:#1a6e3c;margin-bottom:6px">Start Entering Marks</div>
+  <p style="font-size:13px">Select a subject and class above to load the student marklist.<br>You can enter marks for CAT 1, CAT 2, Midterm, and Final separately.</p>
+</div>
+{% endif %}
+
+<!-- Recent marks log -->
+{% if marks %}
+<details style="margin-top:8px">
+  <summary style="cursor:pointer;font-weight:700;font-size:14px;color:#6b7280;list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0;user-select:none">
+    <span>📜</span> Recent Entries (last 50) <span style="font-size:12px;font-weight:400">(click to expand)</span>
+  </summary>
+  <div class="card" style="padding:0;overflow:hidden;margin-top:12px">
+    <div class="table-wrap">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Subject</th>
+            <th>Exam</th>
+            <th>Score</th>
+            <th>Grade</th>
+            <th>Term</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in marks %}
+          {% set subj = subj_map.get(m.subject_id) %}
+          {% set stud = stud_map.get(m.student_id) %}
+          <tr>
+            <td><strong>{{ stud.full_name if stud else '—' }}</strong><br><span style="color:#9ca3af">{{ stud.adm_number if stud else '' }}</span></td>
+            <td><span class="badge badge-info">{{ subj.code if subj else '—' }}</span></td>
+            <td><span class="badge badge-gray">{{ m.exam_type }}</span></td>
+            <td><strong>{{ m.score }}</strong><span style="color:#9ca3af">/100</span></td>
+            <td><span class="grade-{{ grade(m.score) }}">{{ grade(m.score) }}</span></td>
+            <td style="color:#6b7280">{{ m.term }} {{ m.year }}</td>
+            <td style="color:#9ca3af">{{ m.created_at.strftime('%d %b') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</details>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const gradeMap = v => {
+  if(v===''||v===null||isNaN(v)) return {l:'—',c:''};
+  v=parseFloat(v);
+  if(v>=75) return {l:'A',c:'gA'};
+  if(v>=65) return {l:'B',c:'gB'};
+  if(v>=50) return {l:'C',c:'gC'};
+  if(v>=40) return {l:'D',c:'gD'};
+  return {l:'F',c:'gF'};
+};
+
+function updateGrade(sid, val){
+  const pill = document.getElementById('grd_'+sid);
+  const inp  = document.getElementById('inp_'+sid);
+  if(!pill) return;
+  const {l,c} = gradeMap(val);
+  pill.textContent = l;
+  pill.className   = 'grade-pill '+(c||'');
+  inp.classList.toggle('has-value', val!=='');
+  inp.classList.toggle('invalid', val!=='' && (parseFloat(val)<0||parseFloat(val)>100||isNaN(parseFloat(val))));
+  countFilled();
+}
+
+function countFilled(){
+  const inputs = document.querySelectorAll('.score-input');
+  let n = 0;
+  inputs.forEach(i=>{ if(i.value.trim()!=='') n++; });
+  const el = document.getElementById('bottomCount');
+  if(el) el.textContent = n + ' / ' + inputs.length;
+}
+
+// Init grades for pre-filled values
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.score-input').forEach(inp=>{
+    const sid = inp.name.replace('score_','');
+    if(inp.value) updateGrade(sid, inp.value);
+  });
+  countFilled();
+});
+</script>
+{% endblock %}

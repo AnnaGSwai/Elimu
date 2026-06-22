@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.full_name }} — Results — Elimu{% endblock %}
+{% block page_title %}Student Results{% endblock %}
+{% block content %}
+
+<style>
+/* Marklist */
+.ml-outer{overflow-x:auto;border-radius:12px;border:1px solid #e5e7eb}
+.ml-tbl{border-collapse:collapse;width:100%;min-width:500px}
+.ml-tbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:9px 10px;border:1px solid #c6e6d2;text-align:center;background:#1a6e3c;color:white;white-space:nowrap}
+.ml-tbl th.th-subj-name{text-align:left;background:#0f4c2a;min-width:150px}
+.ml-tbl th.th-subj-header{background:#1d7a43;border-bottom:none !important}
+.ml-tbl th.th-exam{background:#2d8f55;font-size:9px}
+.ml-tbl th.th-avg{background:#226b3e;font-size:9px}
+.ml-tbl td{padding:8px 10px;border:1px solid #e5e7eb;font-size:13px;text-align:center;vertical-align:middle}
+.ml-tbl td.td-subj{text-align:left;font-weight:600;background:#fafffe;padding-left:14px;white-space:nowrap}
+.ml-tbl tbody tr:nth-child(even) td{background:#fafcfb}
+.ml-tbl tbody tr:hover td{background:#edf7f1 !important}
+.ml-tbl tbody tr:hover td.td-subj{background:#e8f5ee !important}
+.score-A{color:#1a6e3c;background:rgba(26,110,60,.1);border-radius:4px;padding:2px 6px;font-weight:700}
+.score-B{color:#1967d2;background:rgba(25,103,210,.1);border-radius:4px;padding:2px 6px;font-weight:700}
+.score-C{color:#d97706;background:rgba(217,119,6,.1);border-radius:4px;padding:2px 6px;font-weight:700}
+.score-D{color:#ea8c2a;background:rgba(234,140,42,.1);border-radius:4px;padding:2px 6px;font-weight:700}
+.score-F{color:#c0392b;background:rgba(192,57,43,.1);border-radius:4px;padding:2px 6px;font-weight:700}
+.score-empty{color:#d1d5db;font-size:11px}
+</style>
+
+<!-- Student Info Card -->
+<div style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#1a6e3c,#2d8f55);border-radius:14px;padding:22px 24px;margin-bottom:20px;color:white">
+  <div style="width:64px;height:64px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;backdrop-filter:blur(6px)">
+    {{ '👦' if student.gender == 'M' else '👧' }}
+  </div>
+  <div style="flex:1">
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.3px">{{ student.full_name }}</div>
+    <div style="opacity:.8;font-size:13px;margin-top:3px">
+      {{ student.class_name }} {{ student.stream }} &nbsp;·&nbsp;
+      Adm: <code style="background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:4px;font-size:12px">{{ student.adm_number }}</code>
+      &nbsp;·&nbsp; {{ 'Male' if student.gender == 'M' else 'Female' }}
+    </div>
+  </div>
+  <a href="{{ url_for('parent_dashboard') }}" class="btn btn-secondary btn-sm" style="flex-shrink:0">← Back</a>
+</div>
+
+<!-- Term Filter -->
+<div class="card" style="margin-bottom:20px">
+  <form method="GET" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+    <div class="form-group" style="margin:0;flex:1;min-width:120px">
+      <label>Term</label>
+      <select name="term">
+        {% for t in ['Term 1','Term 2','Term 3'] %}
+        <option value="{{ t }}" {{ 'selected' if t == term }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;max-width:100px">
+      <label>Year</label>
+      <input name="year" type="number" value="{{ year }}" style="width:90px">
+    </div>
+    <button class="btn btn-primary" type="submit">🔍 View Results</button>
+  </form>
+</div>
+
+<!-- Summary Strip -->
+{% set has_marks = mark_grid.values() | map('length') | sum > 0 %}
+{% if has_marks %}
+<div style="display:flex;gap:16px;margin-bottom:20px;padding:18px 20px;background:linear-gradient(135deg,#e8f5ee,#d1fae5);border-radius:12px;border:1px solid #a7d9bc;flex-wrap:wrap">
+  <div>
+    <div style="font-size:11px;color:#1a6e3c;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Overall Average</div>
+    <div style="font-size:32px;font-weight:800;color:#1a6e3c;line-height:1">{{ avg }}%</div>
+  </div>
+  <div style="border-left:1px solid #a7d9bc;margin:0 8px"></div>
+  <div>
+    <div style="font-size:11px;color:#1a6e3c;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Grade</div>
+    <div style="font-size:32px;font-weight:800;line-height:1" class="grade-{{ grade(avg) }}">{{ grade(avg) }}</div>
+  </div>
+  <div style="border-left:1px solid #a7d9bc;margin:0 8px"></div>
+  <div>
+    <div style="font-size:11px;color:#1a6e3c;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Term</div>
+    <div style="font-size:18px;font-weight:700;color:#1a6e3c;line-height:1.4">{{ term }}<br><span style="font-size:14px">{{ year }}</span></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Marklist Card -->
+<div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">
+  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-weight:700;font-size:15px">📊 Academic Marklist — {{ term }} {{ year }}</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px">
+        Scores shown for:
+        {% for et in exam_types %}<span style="color:#1a6e3c;font-weight:600">{{ et }}</span>{% if not loop.last %} · {% endif %}{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% if has_marks %}
+  <div class="ml-outer" style="border-radius:0;border:none">
+    <table class="ml-tbl">
+      <thead>
+        <!-- Row 1: Subject name spanning all exam cols + avg -->
+        <tr>
+          <th class="th-subj-name" rowspan="2">Subject</th>
+          {% for et in exam_types %}
+          <th class="th-exam">{{ et }}</th>
+          {% endfor %}
+          <th class="th-avg">Subj. Avg</th>
+          <th class="th-avg">Remark</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subj in subjects %}
+        {% set sm = mark_grid.get(subj.id, {}) %}
+        {% set subj_scores = sm.values() | list %}
+        {% set subj_avg = (subj_scores | sum / subj_scores | length) | round(1) if subj_scores else none %}
+        <tr>
+          <td class="td-subj">
+            <span class="badge badge-info" style="margin-right:6px">{{ subj.code }}</span>{{ subj.name }}
+          </td>
+          {% for et in exam_types %}
+          {% set sc = sm.get(et) %}
+          <td>
+            {% if sc is not none %}
+            <span class="score-{{ grade(sc) }}">{{ sc | int if sc == sc | int else sc }}</span>
+            {% else %}<span class="score-empty">—</span>{% endif %}
+          </td>
+          {% endfor %}
+          <td style="background:#f0f7f3;font-weight:700">
+            {% if subj_avg is not none %}
+            <span class="grade-{{ grade(subj_avg) }}">{{ subj_avg }}</span>
+            {% else %}<span class="score-empty">—</span>{% endif %}
+          </td>
+          <td style="background:#f0f7f3;font-size:12px">
+            {% if subj_avg is not none %}
+              {% set g = grade(subj_avg) %}
+              {% if g == 'A' %}🌟 Excellent
+              {% elif g == 'B' %}👍 Good
+              {% elif g == 'C' %}😊 Average
+              {% elif g == 'D' %}⚠️ Needs Improvement
+              {% else %}❌ Fail
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:56px 24px">
+    <div class="icon">📊</div>
+    <p>No results available for {{ term }} {{ year }}.<br>Try selecting a different term or year.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Fee Status -->
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb">
+    <div style="font-weight:700;font-size:15px">💳 Fee Status</div>
+  </div>
+  {% if invoices %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Invoice</th><th>Description</th><th>Amount</th><th>Term</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td><code>{{ inv.invoice_number }}</code></td>
+          <td>{{ inv.description }}</td>
+          <td><strong>TZS {{ '{:,.0f}'.format(inv.amount) }}</strong></td>
+          <td style="color:#6b7280">{{ inv.term }} {{ inv.year }}</td>
+          <td>
+            <span class="badge {% if inv.status=='paid' %}badge-success{% elif inv.status=='partial' %}badge-warning{% else %}badge-danger{% endif %}">
+              {{ inv.status | upper }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:40px">
+    <div class="icon">💳</div><p>No invoices found for this student.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Grade key -->
+<div style="display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;align-items:center">
+  <span style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Grade Scale:</span>
+  {% for g, rng, col in [('A','75–100','#1a6e3c'),('B','65–74','#1967d2'),('C','50–64','#d97706'),('D','40–49','#ea8c2a'),('F','0–39','#c0392b')] %}
+  <div style="display:flex;align-items:center;gap:5px;font-size:12px">
+    <strong style="color:{{ col }}">{{ g }}</strong>
+    <span style="color:#9ca3af">{{ rng }}%</span>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Invoices — Elimu{% endblock %}
+{% block page_title %}Invoice Management{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🧾 Invoices</h2>
+  <button class="btn btn-primary" onclick="openModal('addInvoice')">+ Create Invoice</button>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Invoice No.</th><th>Student</th><th>Description</th><th>Amount (TZS)</th><th>Term</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for inv in invoices %}
+        {% set student = student_map.get(inv.student_id) %}
+        <tr>
+          <td><code>{{ inv.invoice_number }}</code></td>
+          <td>{{ student.full_name if student else '—' }}<br><small>{{ student.adm_number if student else '' }}</small></td>
+          <td>{{ inv.description }}</td>
+          <td><strong>{{ '{:,.0f}'.format(inv.amount) }}</strong></td>
+          <td>{{ inv.term }} {{ inv.year }}</td>
+          <td><span class="badge {% if inv.status=='paid' %}badge-success{% elif inv.status=='partial' %}badge-warning{% else %}badge-danger{% endif %}">{{ inv.status }}</span></td>
+          <td>
+            {% if inv.status != 'paid' %}
+            <a href="{{ url_for('generate_control_number', inv_id=inv.id) }}" class="btn btn-sm btn-info" onclick="return confirm('Generate control number for this invoice?')">🔢 Control No.</a>
+            {% else %}
+            <span style="color:#aaa;font-size:12px">✅ Paid</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices created yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addInvoice">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create Invoice</h3>
+      <button class="modal-close" onclick="closeModal('addInvoice')">✕</button>
+    </div>
+    <form method="POST">
+      <div class="modal-body">
+        <div class="form-group"><label>Student</label>
+          <select name="student_id" required>
+            <option value="">Select student...</option>
+            {% for s in students %}<option value="{{ s.id }}">{{ s.full_name }} ({{ s.adm_number }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group"><label>Description</label><input name="description" required placeholder="e.g. Tuition Fee Term 1 2025"></div>
+        <div class="form-group"><label>Amount (TZS)</label><input name="amount" type="number" step="1000" required placeholder="e.g. 350000"></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Term</label>
+            <select name="term"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select>
+          </div>
+          <div class="form-group"><label>Year</label><input name="year" type="number" value="2025" min="2020" max="2030"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addInvoice')">Cancel</button>
+        <button class="btn btn-primary">Create Invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

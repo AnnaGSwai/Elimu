@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Schools — Elimu{% endblock %}
+{% block page_title %}School Management{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🏫 Schools</h2>
+  <button class="btn btn-primary" onclick="openModal('addSchool')">+ Add School</button>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>School Name</th><th>Reg No.</th><th>Address</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for s in schools %}
+        <tr>
+          <td><strong>{{ s.name }}</strong></td>
+          <td><code>{{ s.reg_number }}</code></td>
+          <td>{{ s.address or '—' }}</td>
+          <td>{{ s.phone or '—' }}<br><small>{{ s.email or '' }}</small></td>
+          <td><span class="badge {{ 'badge-success' if s.active else 'badge-danger' }}">{{ 'Active' if s.active else 'Inactive' }}</span></td>
+          <td>
+            <a href="{{ url_for('toggle_school', sid=s.id) }}" class="btn btn-sm {{ 'btn-danger' if s.active else 'btn-secondary' }}">
+              {{ 'Deactivate' if s.active else 'Activate' }}
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><div class="empty-state"><div class="icon">🏫</div><p>No schools registered yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addSchool">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Register New School</h3>
+      <button class="modal-close" onclick="closeModal('addSchool')">✕</button>
+    </div>
+    <form method="POST">
+      <div class="modal-body">
+        <div class="form-group"><label>School Name</label><input name="name" required placeholder="e.g. Elimu Secondary School"></div>
+        <div class="form-group"><label>Registration Number</label><input name="reg_number" required placeholder="e.g. S0023"></div>
+        <div class="form-group"><label>Address</label><input name="address" placeholder="City, Region"></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Phone</label><input name="phone" placeholder="+255 ..."></div>
+          <div class="form-group"><label>Email</label><input name="email" type="email" placeholder="info@school.ac.tz"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addSchool')">Cancel</button>
+        <button class="btn btn-primary">Register School</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

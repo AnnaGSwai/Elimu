@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}Timetable — Elimu{% endblock %}
+{% block page_title %}Lesson Timetable{% endblock %}
+{% block content %}
+
+<style>
+/* ── Timetable-specific styles ── */
+.tt-visual{overflow-x:auto;border-radius:14px;border:1px solid #e5e7eb}
+.tt-table{width:100%;border-collapse:collapse;min-width:680px}
+.tt-table th{padding:14px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;background:#1a6e3c;color:white;text-align:center;position:sticky;top:0;z-index:5}
+.tt-table th.time-col{background:#0f4c2a;width:72px}
+.tt-table td{vertical-align:top;padding:4px;border:1px solid #f0f0f0;background:#fafafa;min-height:64px;min-width:120px;height:64px}
+.tt-table td.time-label{background:#f8fafc;text-align:center;font-size:11px;font-weight:600;color:#6b7280;vertical-align:middle;padding:4px 6px;border-right:2px solid #e5e7eb}
+.tt-table tr:nth-child(even) td.time-label{background:#f0f7f4}
+.slot{border-radius:8px;padding:7px 9px;font-size:11px;line-height:1.4;height:100%;display:flex;flex-direction:column;justify-content:center;cursor:default;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.slot:hover{transform:scale(1.02);box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2}
+.slot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.slot-0{background:#e8f5ee;color:#1a6e3c} .slot-0::before{background:#1a6e3c}
+.slot-1{background:#e8f0fe;color:#1967d2} .slot-1::before{background:#1967d2}
+.slot-2{background:#fef3e2;color:#d97706} .slot-2::before{background:#d97706}
+.slot-3{background:#f3e8fe;color:#7c3aed} .slot-3::before{background:#7c3aed}
+.slot-4{background:#fde8e8;color:#c0392b} .slot-4::before{background:#c0392b}
+.slot-5{background:#e0f7fa;color:#0277bd} .slot-5::before{background:#0277bd}
+.slot-name{font-weight:700;font-size:12px}
+.slot-meta{opacity:.8;font-size:10px;margin-top:1px}
+.slot-time{opacity:.65;font-size:10px}
+/* list table */
+.slots-list th{background:#f8fafc;color:#6b7280}
+.del-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#fde8e8;color:#c0392b;font-size:11px;font-weight:600;text-decoration:none;transition:background .15s}
+.del-btn:hover{background:#f5c6c6}
+/* day columns color accent */
+.day-Mon{background:rgba(26,110,60,0.04)}
+.day-Tue{background:rgba(25,103,210,0.04)}
+.day-Wed{background:rgba(217,119,6,0.04)}
+.day-Thu{background:rgba(124,58,237,0.04)}
+.day-Fri{background:rgba(192,57,43,0.04)}
+</style>
+
+{% set days = ['Monday','Tuesday','Wednesday','Thursday','Friday'] %}
+{% set hours = ['07:00','08:00','09:00','10:00','10:30','11:00','11:30','12:00','13:00','14:00','15:00'] %}
+{% set colors = ['slot-0','slot-1','slot-2','slot-3','slot-4','slot-5'] %}
+
+<!-- Page header -->
+<div class="page-header" style="margin-bottom:24px">
+  <div>
+    <h2 style="font-size:22px;font-weight:800;color:#1c1c1e">📅 Weekly Timetable</h2>
+    <p style="color:#6b7280;font-size:13px;margin-top:2px">Your scheduled lessons this week</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('addSlot')" style="gap:8px">
+    <span style="font-size:16px">+</span> Add Lesson Slot
+  </button>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-grid" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-icon green">📅</div>
+    <div><div class="stat-label">Total Slots</div><div class="stat-value">{{ timetable|length }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue">📚</div>
+    <div><div class="stat-label">Subjects</div><div class="stat-value">{{ subjects|length }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">🏫</div>
+    <div><div class="stat-label">Classes</div><div class="stat-value">{{ timetable|map(attribute='class_name')|list|unique|list|length if timetable else 0 }}</div></div>
+  </div>
+</div>
+
+<!-- Visual Grid -->
+<div class="card" style="padding:0;overflow:hidden;margin-bottom:24px">
+  <div style="padding:18px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-weight:700;font-size:15px">📋 Visual Schedule</div>
+    <div style="font-size:12px;color:#6b7280">Hover over slots for details</div>
+  </div>
+  <div class="tt-visual">
+    <table class="tt-table">
+      <thead>
+        <tr>
+          <th class="time-col">Time</th>
+          {% for day in days %}<th>{{ day }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for hour in hours %}
+        <tr>
+          <td class="time-label">{{ hour }}</td>
+          {% for day in days %}
+          <td class="day-{{ day[:3] }}">
+            {% for tt in timetable %}
+              {% if tt.day == day and tt.start_time == hour %}
+                {% set subj = subj_map.get(tt.subject_id) %}
+                {% set cidx = loop.index0 % 6 %}
+                <div class="slot slot-{{ loop.index0 % 6 }}" title="{{ subj.name if subj else '' }} — {{ tt.class_name }} {{ tt.stream }} ({{ tt.start_time }}–{{ tt.end_time }})">
+                  <div class="slot-name">{{ subj.name if subj else '?' }}</div>
+                  <div class="slot-meta">{{ tt.class_name }} {{ tt.stream }}</div>
+                  <div class="slot-time">{{ tt.start_time }}–{{ tt.end_time }}</div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if not timetable %}
+  <div class="empty-state" style="padding:60px 24px">
+    <div class="icon">📅</div>
+    <p>No slots added yet. Click <strong>Add Lesson Slot</strong> to build your timetable.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Slots List -->
+{% if timetable %}
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="padding:18px 20px;border-bottom:1px solid #e5e7eb">
+    <div style="font-weight:700;font-size:15px">🗂 All Scheduled Slots</div>
+  </div>
+  <div class="table-wrap">
+    <table class="slots-list">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Subject</th>
+          <th>Class</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tt in timetable | sort(attribute='day') %}
+        {% set subj = subj_map.get(tt.subject_id) %}
+        <tr>
+          <td style="color:#9ca3af;font-size:12px">{{ loop.index }}</td>
+          <td>
+            <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background:{% if tt.day=='Monday' %}#e8f5ee;color:#1a6e3c{% elif tt.day=='Tuesday' %}#e8f0fe;color:#1967d2{% elif tt.day=='Wednesday' %}#fef3e2;color:#d97706{% elif tt.day=='Thursday' %}#f3e8fe;color:#7c3aed{% else %}#fde8e8;color:#c0392b{% endif %}">
+              {{ tt.day }}
+            </span>
+          </td>
+          <td style="font-weight:600;font-size:13px;font-family:monospace">{{ tt.start_time }} – {{ tt.end_time }}</td>
+          <td>
+            <span class="badge badge-info" style="margin-right:6px">{{ subj.code if subj else '—' }}</span>
+            <span style="font-weight:500">{{ subj.name if subj else '—' }}</span>
+          </td>
+          <td><span style="font-weight:600">{{ tt.class_name }}</span> <span style="color:#6b7280">{{ tt.stream }}</span></td>
+          <td>
+            <a href="{{ url_for('delete_timetable', tt_id=tt.id) }}" class="del-btn"
+               onclick="return confirm('Remove this slot?')">🗑 Remove</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Add Slot Modal -->
+<div class="modal-overlay" id="addSlot">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <h3>➕ Add Lesson Slot</h3>
+      <button class="modal-close" onclick="closeModal('addSlot')">✕</button>
+    </div>
+    <form method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Subject</label>
+          <select name="subject_id" required id="subj-sel">
+            <option value="">Select subject...</option>
+            {% for subj in subjects %}
+            <option value="{{ subj.id }}">{{ subj.name }} ({{ subj.code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Class</label>
+            <select name="class_name" required>
+              {% for f in ['Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7'] %}
+              <option>{{ f }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stream</label>
+            <select name="stream">
+              <option>A</option><option>B</option><option>C</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Day of Week</label>
+          <select name="day" required>
+            {% for d in ['Monday','Tuesday','Wednesday','Thursday','Friday'] %}
+            <option>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Start Time</label>
+            <input name="start_time" type="time" required value="07:00">
+          </div>
+          <div class="form-group">
+            <label>End Time</label>
+            <input name="end_time" type="time" required value="08:00">
+          </div>
+        </div>
+        <div style="background:#e8f5ee;border-radius:8px;padding:10px 14px;font-size:12px;color:#1a6e3c">
+          💡 Slots appear in the visual grid based on their start time.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addSlot')">Cancel</button>
+        <button class="btn btn-primary">Save Slot</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

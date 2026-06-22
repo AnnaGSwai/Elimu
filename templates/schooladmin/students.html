@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Students — Elimu{% endblock %}
+{% block page_title %}Student Management{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🧑‍🎓 Students</h2>
+  <button class="btn btn-primary" onclick="openModal('addStudent')">+ Enrol Student</button>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Adm No.</th><th>Full Name</th><th>Class</th><th>Gender</th><th>Parent</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td><code>{{ s.adm_number }}</code></td>
+          <td><strong>{{ s.full_name }}</strong></td>
+          <td>{{ s.class_name }} {{ s.stream }}</td>
+          <td>{{ s.gender or '—' }}</td>
+          <td>{% for p in parents %}{% if p.id == s.parent_id %}{{ p.full_name }}{% endif %}{% endfor %}</td>
+          <td><span class="badge {{ 'badge-success' if s.active else 'badge-danger' }}">{{ 'Active' if s.active else 'Inactive' }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><div class="empty-state"><div class="icon">🧑‍🎓</div><p>No students enrolled yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addStudent">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Enrol New Student</h3>
+      <button class="modal-close" onclick="closeModal('addStudent')">✕</button>
+    </div>
+    <form method="POST">
+      <div class="modal-body">
+        <div class="form-group"><label>Full Name</label><input name="full_name" required placeholder="Student's full name"></div>
+        <div class="grid-3">
+          <div class="form-group"><label>Class</label>
+            <select name="class_name" required>
+              <option value="Form 1">Form 1</option>
+              <option value="Form 2">Form 2</option>
+              <option value="Form 3">Form 3</option>
+              <option value="Form 4">Form 4</option>
+              <option value="Form 5">Form 5</option>
+              <option value="Form 6">Form 6</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Stream</label>
+            <select name="stream"><option>A</option><option>B</option><option>C</option></select>
+          </div>
+          <div class="form-group"><label>Gender</label>
+            <select name="gender"><option value="M">Male</option><option value="F">Female</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Date of Birth</label><input name="dob" type="date"></div>
+        <div class="form-group"><label>Parent Account (optional)</label>
+          <select name="parent_id">
+            <option value="">— None / Add later —</option>
+            {% for p in parents %}<option value="{{ p.id }}">{{ p.full_name }} ({{ p.username }})</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addStudent')">Cancel</button>
+        <button class="btn btn-primary">Enrol Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
