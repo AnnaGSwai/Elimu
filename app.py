@@ -15,11 +15,6 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'elimu-secret-2025')
 _db_url = os.environ.get('DATABASE_URL', 'sqlite:////tmp/elimu.db')
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
-# Auto-configure Supabase for serverless (PgBouncer transaction mode on port 6543)
-if '.supabase.co' in _db_url:
-    if ':5432' in _db_url:
-        _db_url = _db_url.replace(':5432', ':6543')
-    _db_url += ('&' if '?' in _db_url else '?') + 'pgbouncer=true&connection_limit=1'
 if 'postgresql' in _db_url and 'sslmode' not in _db_url:
     _db_url += ('&' if '?' in _db_url else '?') + 'sslmode=require'
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
