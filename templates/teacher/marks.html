@@ -6,10 +6,11 @@
 <style>
 .filter-card{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:24px}
 .filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
-.filter-row .fg{flex:1;min-width:130px;margin:0}
+.filter-row .fg{flex:1;min-width:120px;margin:0}
 .filter-row label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
 .filter-row select,.filter-row input{padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;color:#1c1c1e;background:#fafafa;width:100%;outline:none;transition:border .15s}
 .filter-row select:focus,.filter-row input:focus{border-color:#1a6e3c;background:#fff;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
+@media(max-width:480px){.filter-card{padding:14px}.filter-row{flex-direction:column}.filter-row .fg{min-width:0;width:100%}}
 
 /* Marklist table */
 .ml-wrap{overflow-x:auto;border-radius:12px;border:1px solid #e5e7eb}
@@ -24,6 +25,7 @@
 .ml-table tr:last-child td{border-bottom:none}
 .rank-num{width:30px;height:30px;background:#f3f4f6;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6b7280}
 .score-input{width:80px;padding:7px 10px;border:1.5px solid #d1fae5;border-radius:8px;font-size:14px;font-weight:600;text-align:center;font-family:inherit;color:#1c1c1e;background:#f0fdf4;outline:none;transition:all .15s}
+@media(max-width:480px){.score-input{width:64px;padding:6px 6px;font-size:13px}}
 .score-input:focus{border-color:#1a6e3c;background:white;box-shadow:0 0 0 3px rgba(26,110,60,.1)}
 .score-input.has-value{background:white;border-color:#1a6e3c}
 .score-input.invalid{border-color:#ef4444;background:#fef2f2}
@@ -36,6 +38,7 @@
 
 /* Save bar */
 .save-bar{position:sticky;bottom:16px;z-index:50;display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid #e5e7eb;border-radius:12px;padding:14px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.12);margin-top:16px}
+@media(max-width:480px){.save-bar{flex-direction:column;gap:10px;padding:12px 14px}}
 .save-count{font-size:13px;color:#6b7280}
 .save-count strong{color:#1a6e3c;font-size:15px}
 

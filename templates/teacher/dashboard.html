@@ -24,7 +24,7 @@
       <a href="{{ url_for('manage_marks') }}" class="btn btn-primary btn-sm">Enter Marks</a>
     </div>
     {% for subj in subjects %}
-    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+    <div class="teacher-subj-row" style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <span class="badge badge-info">{{ subj.code }}</span>
       <span>{{ subj.name }}</span>
     </div>
