@@ -178,7 +178,7 @@ def dashboard():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-    schools = School.query.filter_by(active=True).all()
+    schools = School.query.filter_by(active=1).all()
     if request.method == 'POST':
         username = request.form['username'].strip()
         if User.query.filter_by(username=username).first():
@@ -196,7 +196,7 @@ def register():
             email=request.form.get('email','').strip(),
             role=role,
             school_id=request.form.get('school_id') or None,
-            active=True
+            active=1
         )
         u.set_password(request.form['password'])
         db.session.add(u)
@@ -240,7 +240,7 @@ def manage_schools():
 def toggle_school(sid):
     if current_user.role != 'sysadmin': return redirect(url_for('dashboard'))
     s = School.query.get_or_404(sid)
-    s.active = not s.active
+    s.active = 0 if s.active else 1
     db.session.commit()
     flash(f'School {"activated" if s.active else "deactivated"}', 'success')
     return redirect(url_for('manage_schools'))
@@ -263,7 +263,7 @@ def manage_users():
         flash('User created successfully', 'success')
         return redirect(url_for('manage_users'))
     users = User.query.filter(User.role != 'sysadmin').all()
-    schools = School.query.filter_by(active=True).all()
+    schools = School.query.filter_by(active=1).all()
     return render_template('sysadmin/users.html', users=users, schools=schools)
 
 @app.route('/sysadmin/users/<int:uid>/toggle')
@@ -271,7 +271,7 @@ def manage_users():
 def toggle_user(uid):
     if current_user.role != 'sysadmin': return redirect(url_for('dashboard'))
     u = User.query.get_or_404(uid)
-    u.active = not u.active
+    u.active = 0 if u.active else 1
     db.session.commit()
     flash('User status updated', 'success')
     return redirect(url_for('manage_users'))
@@ -284,8 +284,8 @@ def schooladmin_dashboard():
     if current_user.role != 'schooladmin': return redirect(url_for('dashboard'))
     sid = current_user.school_id
     school = School.query.get(sid)
-    students = Student.query.filter_by(school_id=sid, active=True).all()
-    teachers = User.query.filter_by(school_id=sid, role='teacher', active=True).all()
+    students = Student.query.filter_by(school_id=sid, active=1).all()
+    teachers = User.query.filter_by(school_id=sid, role='teacher', active=1).all()
     subjects = Subject.query.filter_by(school_id=sid).all()
     return render_template('schooladmin/dashboard.html', school=school, students=students, teachers=teachers, subjects=subjects)
 
@@ -296,7 +296,7 @@ def manage_students():
     sid = current_user.school_id
     if request.method == 'POST':
         adm = gen_code('ADM', 6)
-        parents = User.query.filter_by(school_id=sid, role='parent', active=True).all()
+        parents = User.query.filter_by(school_id=sid, role='parent', active=1).all()
         s = Student(
             full_name=request.form['full_name'],
             adm_number=adm,
@@ -312,7 +312,7 @@ def manage_students():
         flash(f'Student added. Admission No: {adm}', 'success')
         return redirect(url_for('manage_students'))
     students = Student.query.filter_by(school_id=sid).all()
-    parents = User.query.filter_by(school_id=sid, role='parent', active=True).all()
+    parents = User.query.filter_by(school_id=sid, role='parent', active=1).all()
     return render_template('schooladmin/students.html', students=students, parents=parents)
 
 @app.route('/schooladmin/subjects', methods=['GET','POST'])
@@ -332,7 +332,7 @@ def manage_subjects():
         flash('Subject added', 'success')
         return redirect(url_for('manage_subjects'))
     subjects = Subject.query.filter_by(school_id=sid).all()
-    teachers = User.query.filter_by(school_id=sid, role='teacher', active=True).all()
+    teachers = User.query.filter_by(school_id=sid, role='teacher', active=1).all()
     return render_template('schooladmin/subjects.html', subjects=subjects, teachers=teachers)
 
 @app.route('/schooladmin/staff', methods=['GET','POST'])
@@ -392,7 +392,7 @@ def manage_invoices():
         flash(f'Invoice {inv_no} created', 'success')
         return redirect(url_for('manage_invoices'))
     invoices = Invoice.query.filter_by(school_id=sid).order_by(Invoice.created_at.desc()).all()
-    students = Student.query.filter_by(school_id=sid, active=True).all()
+    students = Student.query.filter_by(school_id=sid, active=1).all()
     student_map = {s.id: s for s in students}
     return render_template('accountant/invoices.html', invoices=invoices, students=students, student_map=student_map)
 
@@ -556,7 +556,7 @@ def manage_marks():
             term      = request.form['term']
             year      = int(request.form['year'])
             cls       = request.form['class_name']
-            stud_list = Student.query.filter_by(school_id=sid, class_name=cls, active=True).all()
+            stud_list = Student.query.filter_by(school_id=sid, class_name=cls, active=1).all()
             saved = 0
             for stud in stud_list:
                 val = request.form.get(f'score_{stud.id}', '').strip()
@@ -608,14 +608,14 @@ def manage_marks():
             return redirect(url_for('manage_marks'))
 
     subjects  = Subject.query.filter_by(school_id=sid).all()
-    all_studs = Student.query.filter_by(school_id=sid, active=True).all()
+    all_studs = Student.query.filter_by(school_id=sid, active=1).all()
     classes   = [f'Class {i}' for i in range(1, 8)]
 
     marklist_students = []
     existing_marks    = {}
     if sel_subject and sel_class:
         marklist_students = Student.query.filter_by(
-            school_id=sid, class_name=sel_class, active=True).all()
+            school_id=sid, class_name=sel_class, active=1).all()
         ex_marks = Mark.query.filter_by(
             subject_id=int(sel_subject), exam_type=sel_exam,
             term=sel_term, year=sel_year, school_id=sid
@@ -681,7 +681,7 @@ def teacher_results():
     term = request.args.get('term', 'Term 1')
     year = int(request.args.get('year', datetime.utcnow().year))
 
-    students_q = Student.query.filter_by(school_id=sid, active=True)
+    students_q = Student.query.filter_by(school_id=sid, active=1)
     if class_filter: students_q = students_q.filter_by(class_name=class_filter)
     students = students_q.all()
 
@@ -721,7 +721,7 @@ def download_results_pdf():
     term = request.args.get('term', 'Term 1')
     year = int(request.args.get('year', datetime.utcnow().year))
     school = School.query.get(sid)
-    students_q = Student.query.filter_by(school_id=sid, active=True)
+    students_q = Student.query.filter_by(school_id=sid, active=1)
     if class_filter: students_q = students_q.filter_by(class_name=class_filter)
     students = students_q.all()
     subjects = Subject.query.filter_by(school_id=sid).all()
@@ -813,7 +813,7 @@ def download_results_pdf():
 @login_required
 def parent_dashboard():
     if current_user.role != 'parent': return redirect(url_for('dashboard'))
-    children = Student.query.filter_by(parent_id=current_user.id, active=True).all()
+    children = Student.query.filter_by(parent_id=current_user.id, active=1).all()
     return render_template('parent/dashboard.html', children=children)
 
 @app.route('/parent/results/<int:student_id>')
