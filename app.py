@@ -24,20 +24,16 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# On first request, ensure tables and seed data exist
-_db_ready = False
-@app.before_request
-def _ensure_db():
-    global _db_ready
-    if not _db_ready:
-        try:
-            db.create_all()
-            if not User.query.filter_by(username='admin').first():
-                seed()
-        except Exception as ex:
-            print(f"[ELIMU] DB init failed: {ex}")
-            return None  # Let the request proceed, will fail with 500 if DB is down
-        _db_ready = True
+# Helper: ensure DB is ready
+def _init_db():
+    try:
+        db.create_all()
+        if not User.query.filter_by(username='admin').first():
+            seed()
+        return True
+    except Exception as ex:
+        print(f"[ELIMU] DB init error: {ex}")
+        return False
 
 # ─── MODELS ───────────────────────────────────────────────────────────────────
 
@@ -149,6 +145,7 @@ def grade(score):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
+    _init_db()
     if request.method == 'POST':
         u = User.query.filter_by(username=request.form['username']).first()
         if u and u.check_password(request.form['password']) and u.active:
@@ -922,6 +919,38 @@ def seed():
             db.session.add(pay)
     db.session.commit()
     print("✅ Database seeded successfully!")
+
+# ─── SETUP / DIAGNOSTIC ───────────────────────────────────────────────────────
+
+@app.route('/setup')
+def setup_page():
+    ok = _init_db()
+    if ok:
+        admin = User.query.filter_by(username='admin').first()
+        return f'''
+        <html><body style="font-family:sans-serif;padding:40px;background:#f8fafc">
+        <h2 style="color:#1a6e3c">✅ Elimu System — DB Ready</h2>
+        <p>Admin user: <strong>{admin.full_name if admin else "NOT FOUND"}</strong></p>
+        <p>Users: {User.query.count()} | Schools: {School.query.count()} | Students: {Student.query.count()}</p>
+        <p><a href="/" style="color:#1a6e3c;font-weight:700">→ Go to Login</a></p>
+        <p><a href="/health" style="color:#6b7280">→ Health Check</a></p>
+        </body></html>
+        '''
+    return '<html><body style="font-family:sans-serif;padding:40px"><h2 style="color:#c0392b">❌ DB Setup Failed</h2><p>Check Vercel runtime logs for details.</p></body></html>', 500
+
+@app.route('/health')
+def health():
+    try:
+        with app.app_context():
+            db.create_all()
+            ok = User.query.first() is not None
+        return {'status': 'ok', 'db': 'connected' if ok else 'empty'}
+    except Exception as e:
+        return {'status': 'error', 'db': str(e)}, 500
+
+@app.errorhandler(500)
+def handle_500(e):
+    return '<html><body style="font-family:sans-serif;padding:40px;background:#fef2f2"><h2 style="color:#c0392b">❌ Internal Server Error</h2><p>Try <a href="/setup" style="color:#1a6e3c">/setup</a> to initialize the database, or check Vercel runtime logs.</p></body></html>', 500
 
 if __name__ == '__main__':
     with app.app_context():
