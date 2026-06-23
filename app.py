@@ -29,6 +29,8 @@ login_manager.login_view = 'login'
 def _init_db():
     try:
         db.create_all()
+        School.query.filter(School.name.like('%Secondary%')).update({'name': db.func.replace(School.name, 'Secondary', 'Primary')}, synchronize_session=False)
+        db.session.commit()
         if not User.query.filter_by(username='admin').first():
             seed()
         return True
