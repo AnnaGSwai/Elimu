@@ -256,6 +256,19 @@ def toggle_school(sid):
     flash(f'School {"activated" if s.active else "deactivated"}', 'success')
     return redirect(url_for('manage_schools'))
 
+@app.route('/sysadmin/schools/<int:sid>/delete')
+@login_required
+def delete_school(sid):
+    if current_user.role != 'sysadmin': return redirect(url_for('dashboard'))
+    s = School.query.get_or_404(sid)
+    if User.query.filter_by(school_id=sid).first() or Student.query.filter_by(school_id=sid).first():
+        flash('Cannot delete school with active users or students. Deactivate it instead.', 'danger')
+        return redirect(url_for('manage_schools'))
+    db.session.delete(s)
+    db.session.commit()
+    flash(f'School "{s.name}" deleted permanently.', 'success')
+    return redirect(url_for('manage_schools'))
+
 @app.route('/sysadmin/users', methods=['GET','POST'])
 @login_required
 def manage_users():
@@ -285,6 +298,19 @@ def toggle_user(uid):
     u.active = 0 if u.active else 1
     db.session.commit()
     flash('User status updated', 'success')
+    return redirect(url_for('manage_users'))
+
+@app.route('/sysadmin/users/<int:uid>/delete')
+@login_required
+def delete_user(uid):
+    if current_user.role != 'sysadmin': return redirect(url_for('dashboard'))
+    if uid == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('manage_users'))
+    u = User.query.get_or_404(uid)
+    db.session.delete(u)
+    db.session.commit()
+    flash(f'User "{u.username}" deleted permanently.', 'success')
     return redirect(url_for('manage_users'))
 
 # ─── SCHOOL ADMIN ─────────────────────────────────────────────────────────────
@@ -907,7 +933,7 @@ def seed():
     sa = User(username='admin', full_name='System Administrator', email='admin@elimu.tz', role='sysadmin')
     sa.set_password('admin123')
     db.session.add(sa)
-    school = School(name='Elimu Secondary School', reg_number='S0001', address='Dar es Salaam, Tanzania', phone='+255 700 000 001', email='info@elimu.ac.tz')
+    school = School(name='Elimu Primary School', reg_number='S0001', address='Dar es Salaam, Tanzania', phone='+255 700 000 001', email='info@elimu.ac.tz')
     db.session.add(school)
     db.session.flush()
     users_data = [

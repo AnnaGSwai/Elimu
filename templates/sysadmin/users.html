@@ -23,10 +23,11 @@
           <td>{% for s in schools %}{% if s.id == u.school_id %}{{ s.name }}{% endif %}{% endfor %}</td>
           <td>{{ u.email or '—' }}</td>
           <td><span class="badge {{ 'badge-success' if u.active else 'badge-danger' }}">{{ 'Active' if u.active else 'Disabled' }}</span></td>
-          <td>
+          <td style="white-space:nowrap">
             <a href="{{ url_for('toggle_user', uid=u.id) }}" class="btn btn-sm {{ 'btn-danger' if u.active else 'btn-secondary' }}">
               {{ 'Disable' if u.active else 'Enable' }}
             </a>
+            <a href="{{ url_for('delete_user', uid=u.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete this user?')">🗑 Delete</a>
           </td>
         </tr>
         {% else %}

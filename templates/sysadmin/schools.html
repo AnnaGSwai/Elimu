@@ -18,10 +18,11 @@
           <td>{{ s.address or '—' }}</td>
           <td>{{ s.phone or '—' }}<br><small>{{ s.email or '' }}</small></td>
           <td><span class="badge {{ 'badge-success' if s.active else 'badge-danger' }}">{{ 'Active' if s.active else 'Inactive' }}</span></td>
-          <td>
+          <td style="white-space:nowrap">
             <a href="{{ url_for('toggle_school', sid=s.id) }}" class="btn btn-sm {{ 'btn-danger' if s.active else 'btn-secondary' }}">
               {{ 'Deactivate' if s.active else 'Activate' }}
             </a>
+            <a href="{{ url_for('delete_school', sid=s.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete this school and all its data?')">🗑 Delete</a>
           </td>
         </tr>
         {% else %}
@@ -40,7 +41,7 @@
     </div>
     <form method="POST">
       <div class="modal-body">
-        <div class="form-group"><label>School Name</label><input name="name" required placeholder="e.g. Elimu Secondary School"></div>
+        <div class="form-group"><label>School Name</label><input name="name" required placeholder="e.g. Elimu Primary School"></div>
         <div class="form-group"><label>Registration Number</label><input name="reg_number" required placeholder="e.g. S0023"></div>
         <div class="form-group"><label>Address</label><input name="address" placeholder="City, Region"></div>
         <div class="grid-2">
