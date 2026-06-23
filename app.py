@@ -127,6 +127,17 @@ class Payment(db.Model):
     school_id = db.Column(db.Integer, db.ForeignKey('school.id'))
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+class Announcement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    target_role = db.Column(db.String(20), nullable=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('school.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    author = db.relationship('User', backref='announcements', lazy=True)
+
 @login_manager.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
@@ -840,6 +851,53 @@ def parent_results(student_id):
         subjects=subjects, mark_grid=mark_grid,
         term=term, year=year, grade=grade,
         invoices=invoices, exam_types=exam_types, avg=avg)
+
+# ─── ANNOUNCEMENTS ────────────────────────────────────────────────────────────
+
+@app.route('/announcements')
+@login_required
+def announcements():
+    role = current_user.role
+    sid = current_user.school_id
+    q = Announcement.query
+    if role == 'sysadmin':
+        q = q.filter_by(target_role='sysadmin')
+    else:
+        q = q.filter((Announcement.target_role == role) | (Announcement.target_role == 'all'))
+        if sid:
+            q = q.filter((Announcement.school_id == sid) | (Announcement.school_id.is_(None)))
+    all_announcements = q.order_by(Announcement.created_at.desc()).all()
+    return render_template('announcements.html', announcements=all_announcements)
+
+@app.route('/announcements/create', methods=['POST'])
+@login_required
+def create_announcement():
+    if current_user.role == 'parent':
+        flash('Parents cannot post announcements.', 'danger')
+        return redirect(url_for('announcements'))
+    a = Announcement(
+        title=request.form['title'],
+        content=request.form['content'],
+        author_id=current_user.id,
+        target_role=request.form['target_role'],
+        school_id=current_user.school_id if current_user.role != 'sysadmin' else None
+    )
+    db.session.add(a)
+    db.session.commit()
+    flash('Announcement posted!', 'success')
+    return redirect(url_for('announcements'))
+
+@app.route('/announcements/<int:aid>/delete')
+@login_required
+def delete_announcement(aid):
+    a = Announcement.query.get_or_404(aid)
+    if a.author_id != current_user.id and current_user.role != 'sysadmin':
+        flash('You can only delete your own announcements.', 'danger')
+        return redirect(url_for('announcements'))
+    db.session.delete(a)
+    db.session.commit()
+    flash('Announcement deleted.', 'success')
+    return redirect(url_for('announcements'))
 
 # ─── SEED ─────────────────────────────────────────────────────────────────────
 

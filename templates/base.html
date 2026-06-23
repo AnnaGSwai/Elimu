@@ -196,23 +196,28 @@ textarea{resize:vertical;min-height:60px}
       <a href="{{ url_for('sysadmin_dashboard') }}" class="{{ 'active' if request.endpoint == 'sysadmin_dashboard' }}"><span class="icon">📊</span> Dashboard</a>
       <a href="{{ url_for('manage_schools') }}" class="{{ 'active' if request.endpoint == 'manage_schools' }}"><span class="icon">🏫</span> Schools</a>
       <a href="{{ url_for('manage_users') }}" class="{{ 'active' if request.endpoint == 'manage_users' }}"><span class="icon">👥</span> All Users</a>
+      <a href="{{ url_for('announcements') }}" class="{{ 'active' if request.endpoint == 'announcements' }}"><span class="icon">📢</span> Announcements</a>
       {% elif current_user.role == 'schooladmin' %}
       <a href="{{ url_for('schooladmin_dashboard') }}" class="{{ 'active' if request.endpoint == 'schooladmin_dashboard' }}"><span class="icon">📊</span> Dashboard</a>
       <a href="{{ url_for('manage_students') }}" class="{{ 'active' if request.endpoint == 'manage_students' }}"><span class="icon">🧑‍🎓</span> Students</a>
       <a href="{{ url_for('manage_subjects') }}" class="{{ 'active' if request.endpoint == 'manage_subjects' }}"><span class="icon">📚</span> Subjects</a>
       <a href="{{ url_for('manage_staff') }}" class="{{ 'active' if request.endpoint == 'manage_staff' }}"><span class="icon">👨‍🏫</span> Staff</a>
+      <a href="{{ url_for('announcements') }}" class="{{ 'active' if request.endpoint == 'announcements' }}"><span class="icon">📢</span> Announcements</a>
       {% elif current_user.role == 'accountant' %}
       <a href="{{ url_for('accountant_dashboard') }}" class="{{ 'active' if request.endpoint == 'accountant_dashboard' }}"><span class="icon">📊</span> Dashboard</a>
       <a href="{{ url_for('manage_invoices') }}" class="{{ 'active' if request.endpoint == 'manage_invoices' }}"><span class="icon">🧾</span> Invoices</a>
       <a href="{{ url_for('manage_payments') }}" class="{{ 'active' if request.endpoint == 'manage_payments' }}"><span class="icon">💳</span> Payments</a>
+      <a href="{{ url_for('announcements') }}" class="{{ 'active' if request.endpoint == 'announcements' }}"><span class="icon">📢</span> Announcements</a>
       {% elif current_user.role == 'teacher' %}
       <a href="{{ url_for('teacher_dashboard') }}" class="{{ 'active' if request.endpoint == 'teacher_dashboard' }}"><span class="icon">📊</span> Dashboard</a>
       <a href="{{ url_for('manage_marks') }}" class="{{ 'active' if request.endpoint == 'manage_marks' }}"><span class="icon">✏️</span> Enter Marks</a>
       <a href="{{ url_for('manage_timetable') }}" class="{{ 'active' if request.endpoint == 'manage_timetable' }}"><span class="icon">📅</span> Timetable</a>
       <a href="{{ url_for('teacher_manage_students') }}" class="{{ 'active' if request.endpoint == 'teacher_manage_students' }}"><span class="icon">👨‍🎓</span> Manage Students</a>
       <a href="{{ url_for('teacher_results') }}" class="{{ 'active' if request.endpoint == 'teacher_results' }}"><span class="icon">📋</span> Results</a>
+      <a href="{{ url_for('announcements') }}" class="{{ 'active' if request.endpoint == 'announcements' }}"><span class="icon">📢</span> Announcements</a>
       {% elif current_user.role == 'parent' %}
       <a href="{{ url_for('parent_dashboard') }}" class="{{ 'active' if request.endpoint == 'parent_dashboard' }}"><span class="icon">📊</span> Dashboard</a>
+      <a href="{{ url_for('announcements') }}" class="{{ 'active' if request.endpoint == 'announcements' }}"><span class="icon">📢</span> Announcements</a>
       {% endif %}
     </nav>
     <div class="sidebar-bottom">

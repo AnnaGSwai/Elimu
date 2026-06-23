@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Announcements — Elimu{% endblock %}
+{% block page_title %}Announcements{% endblock %}
+{% block content %}
+<style>
+.announcement-card{border-left:3px solid var(--green);margin-bottom:14px;padding:14px 16px;border-radius:8px;border:1px solid var(--border);border-left-width:3px;border-left-color:var(--green)}
+.announcement-card .meta{font-size:11px;color:var(--text-muted);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.announcement-card .meta .tag{display:inline-block;padding:2px 8px;border-radius:10px;background:var(--green-light);color:var(--green);font-weight:600;font-size:10px}
+.announcement-card h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.announcement-card p{font-size:13px;color:#374151;line-height:1.5;white-space:pre-wrap}
+.announcement-card .del-link{font-size:12px;color:#c0392b;margin-top:8px;display:inline-block}
+.post-box{background:#f8fafc;border:1px dashed var(--border);border-radius:10px;padding:16px;margin-bottom:20px}
+.post-box h3{font-size:14px;font-weight:700;margin-bottom:12px}
+.post-box .form-group{margin-bottom:10px}
+.post-box textarea{resize:vertical;min-height:70px}
+.post-box .flex-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.post-box .flex-row .form-group{flex:1;min-width:120px;margin-bottom:0}
+@media(max-width:480px){.post-box .flex-row{flex-direction:column}.post-box .flex-row .form-group{min-width:0;width:100%}}
+</style>
+
+{% if current_user.role != 'parent' %}
+<div class="post-box">
+  <h3>📢 Post an Announcement</h3>
+  <form method="POST" action="{{ url_for('create_announcement') }}">
+    <div class="form-group">
+      <label>Title</label>
+      <input name="title" required placeholder="e.g. School Holiday Notice, Trip to National Park...">
+    </div>
+    <div class="form-group">
+      <label>Message</label>
+      <textarea name="content" required placeholder="Write your announcement here..."></textarea>
+    </div>
+    <div class="flex-row">
+      <div class="form-group">
+        <label>Target Audience</label>
+        <select name="target_role" required>
+          {% if current_user.role == 'sysadmin' %}
+          <option value="sysadmin">System Admins</option>
+          {% endif %}
+          <option value="all">Everyone</option>
+          <option value="parent">Parents</option>
+          <option value="teacher">Teachers</option>
+          <option value="accountant">Accountants</option>
+          <option value="schooladmin">School Admins</option>
+        </select>
+      </div>
+      <button class="btn btn-primary">Post Announcement</button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{% if announcements %}
+  {% for a in announcements %}
+  <div class="announcement-card">
+    <div class="meta">
+      <span>👤 {{ a.author.full_name }}</span>
+      <span>📅 {{ a.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+      <span class="tag">For: {{ {'all':'Everyone','parent':'Parents','teacher':'Teachers','accountant':'Accountants','schooladmin':'School Admins','sysadmin':'System Admins'}.get(a.target_role, a.target_role) }}</span>
+    </div>
+    <h3>{{ a.title }}</h3>
+    <p>{{ a.content }}</p>
+    {% if a.author_id == current_user.id or current_user.role == 'sysadmin' %}
+    <a href="{{ url_for('delete_announcement', aid=a.id) }}" class="del-link" onclick="return confirm('Delete this announcement?')">🗑 Delete</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+{% else %}
+<div class="empty-state" style="padding:48px 16px">
+  <div class="icon">📢</div>
+  <p>No announcements yet.</p>
+</div>
+{% endif %}
+{% endblock %}
