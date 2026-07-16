@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}Users — Elimu{% endblock %}
-{% block page_title %}User Management{% endblock %}
+{% block title %}School Admins — Elimu{% endblock %}
+{% block page_title %}School Admin Management{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>👥 All Users</h2>
-  <button class="btn btn-primary" onclick="openModal('addUser')">+ Create User</button>
+  <h2><i data-lucide="users" class="ico"></i> School Admins</h2>
+  <button type="button" class="btn btn-primary" onclick="openModal('addUser')">+ Create School Admin</button>
 </div>
+<p style="color:var(--muted);font-size:13px;margin:-8px 0 16px">
+  System Admin manages schools and school admins only.
+  Teachers, accountants, and parents are created by each School Admin.
+</p>
 <div class="card">
   <div class="table-wrap">
     <table>
@@ -15,23 +19,28 @@
         <tr>
           <td><strong>{{ u.full_name }}</strong></td>
           <td><code>{{ u.username }}</code></td>
-          <td>
-            <span class="badge {% if u.role=='teacher' %}badge-info{% elif u.role=='accountant' %}badge-warning{% elif u.role=='parent' %}badge-gray{% else %}badge-success{% endif %}">
-              {{ u.role }}
-            </span>
-          </td>
+          <td><span class="badge badge-success">{{ u.role }}</span></td>
           <td>{% for s in schools %}{% if s.id == u.school_id %}{{ s.name }}{% endif %}{% endfor %}</td>
           <td>{{ u.email or '—' }}</td>
           <td><span class="badge {{ 'badge-success' if u.active else 'badge-danger' }}">{{ 'Active' if u.active else 'Disabled' }}</span></td>
           <td style="white-space:nowrap">
+            <button type="button" class="btn btn-sm btn-secondary btn-edit-user"
+              data-id="{{ u.id }}"
+              data-full-name="{{ u.full_name or '' }}"
+              data-username="{{ u.username or '' }}"
+              data-email="{{ u.email or '' }}"
+              data-phone="{{ u.phone or '' }}"
+              data-school-id="{{ u.school_id or '' }}">
+              Edit
+            </button>
             <a href="{{ url_for('toggle_user', uid=u.id) }}" class="btn btn-sm {{ 'btn-danger' if u.active else 'btn-secondary' }}">
               {{ 'Disable' if u.active else 'Enable' }}
             </a>
-            <a href="{{ url_for('delete_user', uid=u.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete this user?')">🗑 Delete</a>
+            <a href="{{ url_for('delete_user', uid=u.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete this school admin?')"><i data-lucide="trash-2" class="ico"></i> Delete</a>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div><p>No users found.</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><div class="icon"><i data-lucide="users" class="ico"></i></div><p>No school admins yet. Create one and assign them to a school.</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -41,40 +50,78 @@
 <div class="modal-overlay" id="addUser">
   <div class="modal">
     <div class="modal-header">
-      <h3>Create New User</h3>
-      <button class="modal-close" onclick="closeModal('addUser')">✕</button>
+      <h3>Create School Admin</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addUser')"><i data-lucide="x" class="ico"></i></button>
     </div>
-    <form method="POST">
+    <form method="POST" action="{{ url_for('manage_users') }}">
       <div class="modal-body">
+        <input type="hidden" name="role" value="schooladmin">
         <div class="grid-2">
           <div class="form-group"><label>Full Name</label><input name="full_name" required placeholder="John Mwalimu"></div>
           <div class="form-group"><label>Username</label><input name="username" required placeholder="jmwalimu"></div>
         </div>
-        <div class="grid-2">
-          <div class="form-group"><label>Role</label>
-            <select name="role" required>
-              <option value="">Select role...</option>
-              <option value="schooladmin">School Admin</option>
-              <option value="accountant">Accountant</option>
-              <option value="teacher">Teacher</option>
-              <option value="parent">Parent</option>
-            </select>
-          </div>
-          <div class="form-group"><label>School</label>
-            <select name="school_id">
-              <option value="">— None —</option>
-              {% for s in schools %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
-            </select>
-          </div>
+        <div class="form-group"><label>School</label>
+          <select name="school_id" required>
+            <option value="">Select school...</option>
+            {% for s in schools %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+          </select>
         </div>
         <div class="form-group"><label>Email</label><input name="email" type="email" placeholder="user@example.com"></div>
+        <div class="form-group"><label>Phone (SMS)</label><input name="phone" type="tel" placeholder="+2557..."></div>
         <div class="form-group"><label>Password</label><input name="password" type="password" required placeholder="Set password"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('addUser')">Cancel</button>
-        <button class="btn btn-primary">Create User</button>
+        <button class="btn btn-primary">Create School Admin</button>
       </div>
     </form>
   </div>
 </div>
+
+<div class="modal-overlay" id="editUser">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit School Admin</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editUser')"><i data-lucide="x" class="ico"></i></button>
+    </div>
+    <form method="POST" id="editUserForm" action="">
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group"><label>Full Name</label><input name="full_name" id="edit_full_name" required></div>
+          <div class="form-group"><label>Username</label><input name="username" id="edit_username" required></div>
+        </div>
+        <div class="form-group"><label>School</label>
+          <select name="school_id" id="edit_school_id" required>
+            <option value="">Select school...</option>
+            {% for s in schools %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group"><label>Email</label><input name="email" id="edit_email" type="email"></div>
+        <div class="form-group"><label>Phone (SMS)</label><input name="phone" id="edit_phone" type="tel"></div>
+        <div class="form-group"><label>New Password</label><input name="password" type="password" placeholder="Leave blank to keep current" autocomplete="new-password"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editUser')">Cancel</button>
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.btn-edit-user').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var id = btn.getAttribute('data-id');
+    document.getElementById('editUserForm').action = '/sysadmin/users/' + id + '/edit';
+    document.getElementById('edit_full_name').value = btn.getAttribute('data-full-name') || '';
+    document.getElementById('edit_username').value = btn.getAttribute('data-username') || '';
+    document.getElementById('edit_email').value = btn.getAttribute('data-email') || '';
+    document.getElementById('edit_phone').value = btn.getAttribute('data-phone') || '';
+    document.getElementById('edit_school_id').value = btn.getAttribute('data-school-id') || '';
+    openModal('editUser');
+  });
+});
+</script>
 {% endblock %}

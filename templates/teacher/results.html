@@ -67,9 +67,9 @@
       <input name="year" type="number" value="{{ year }}" min="2020" max="2035">
     </div>
     <div style="display:flex;gap:8px;padding-bottom:1px">
-      <button class="btn btn-primary" type="submit">🔍 Load</button>
+      <button class="btn btn-primary" type="submit"><i data-lucide="search" class="ico"></i> Load</button>
       <a href="{{ url_for('download_results_pdf', class_name=class_filter, term=term, year=year) }}"
-         class="btn btn-secondary" target="_blank">📄 PDF</a>
+         class="btn btn-secondary" target="_blank"><i data-lucide="file" class="ico"></i> PDF</a>
     </div>
   </form>
 </div>
@@ -80,19 +80,19 @@
 {% set avg_all = (results | map(attribute='avg') | sum / results|length) | round(1) %}
 <div class="stats-grid" style="margin-bottom:20px">
   <div class="stat-card">
-    <div class="stat-icon green">🧑‍🎓</div>
+    <div class="stat-icon green"><i data-lucide="graduation-cap" class="ico"></i></div>
     <div><div class="stat-label">Students</div><div class="stat-value">{{ results|length }}</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon blue">✅</div>
+    <div class="stat-icon blue"><i data-lucide="circle-check" class="ico"></i></div>
     <div><div class="stat-label">Passing</div><div class="stat-value">{{ passing }}</div><div class="stat-sub">Grade D and above</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon amber">📊</div>
+    <div class="stat-icon amber"><i data-lucide="layout-dashboard" class="ico"></i></div>
     <div><div class="stat-label">Class Average</div><div class="stat-value">{{ avg_all }}%</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon purple">🏆</div>
+    <div class="stat-icon purple"><i data-lucide="trophy" class="ico"></i></div>
     <div>
       <div class="stat-label">Top Student</div>
       <div class="stat-value" style="font-size:14px">{{ results[0].student.full_name.split()[0] if results else '—' }}</div>
@@ -106,7 +106,7 @@
 <div class="card" style="padding:0;overflow:hidden">
   <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
     <div>
-      <div style="font-weight:700;font-size:15px">📋 Class Marklist — {{ class_filter or 'All Classes' }} | {{ term }} {{ year }}</div>
+      <div style="font-weight:700;font-size:15px"><i data-lucide="clipboard-list" class="ico"></i> Class Marklist — {{ class_filter or 'All Classes' }} | {{ term }} {{ year }}</div>
       <div style="font-size:12px;color:#6b7280;margin-top:2px">
         Grouped by: 
         {% for et in exam_types %}<span style="color:#1a6e3c;font-weight:600">{{ et }}</span>{% if not loop.last %} · {% endif %}{% endfor %}
@@ -173,9 +173,9 @@
             <span class="grade-{{ r.grade }}" style="font-size:14px">{{ r.grade }}</span>
           </td>
           <td style="background:#f0f7f3">
-            {% if r.position == 1 %}<div class="pos-badge pos-1">🥇</div>
-            {% elif r.position == 2 %}<div class="pos-badge pos-2">🥈</div>
-            {% elif r.position == 3 %}<div class="pos-badge pos-3">🥉</div>
+            {% if r.position == 1 %}<div class="pos-badge pos-1"><i data-lucide="medal" class="ico"></i></div>
+            {% elif r.position == 2 %}<div class="pos-badge pos-2"><i data-lucide="medal" class="ico"></i></div>
+            {% elif r.position == 3 %}<div class="pos-badge pos-3"><i data-lucide="medal" class="ico"></i></div>
             {% else %}<div class="pos-badge pos-n">{{ r.position }}</div>{% endif %}
           </td>
         </tr>
@@ -185,7 +185,7 @@
   </div>
   {% else %}
   <div class="empty-state" style="padding:64px 24px">
-    <div class="icon">📋</div>
+    <div class="icon"><i data-lucide="clipboard-list" class="ico"></i></div>
     <p>No results for this filter. Enter marks first, then view the marklist here.</p>
   </div>
   {% endif %}

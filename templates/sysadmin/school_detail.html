@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{{ school.name }} — Elimu{% endblock %}
+{% block page_title %}School Details{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2><i data-lucide="school" class="ico"></i> {{ school.name }}</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a href="{{ url_for('manage_schools') }}" class="btn btn-secondary"><i data-lucide="arrow-left" class="ico"></i> Back to Schools</a>
+    <a href="{{ url_for('toggle_school', sid=school.id) }}" class="btn {{ 'btn-danger' if school.active else 'btn-secondary' }}">
+      {{ 'Deactivate' if school.active else 'Activate' }}
+    </a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header">
+    <div class="card-title">School profile</div>
+    <span class="badge {{ 'badge-success' if school.active else 'badge-danger' }}">
+      {{ 'Active' if school.active else 'Inactive' }}
+    </span>
+  </div>
+  <div class="grid-2" style="gap:16px;padding:4px 0">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Registration No.</div>
+      <div><code>{{ school.reg_number or '—' }}</code></div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Registered</div>
+      <div>{{ school.created_at.strftime('%d %b %Y') if school.created_at else '—' }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Address</div>
+      <div>{{ school.address or '—' }}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Contact</div>
+      <div>{{ school.phone or '—' }}{% if school.email %}<br><small>{{ school.email }}</small>{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="user-check" class="ico"></i></div>
+    <div><div class="stat-label">School Admins</div><div class="stat-value">{{ stats.admins }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i data-lucide="presentation" class="ico"></i></div>
+    <div><div class="stat-label">Teachers</div><div class="stat-value">{{ stats.teachers }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber"><i data-lucide="wallet" class="ico"></i></div>
+    <div><div class="stat-label">Accountants</div><div class="stat-value">{{ stats.accountants }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple"><i data-lucide="users-round" class="ico"></i></div>
+    <div><div class="stat-label">Parents</div><div class="stat-value">{{ stats.parents }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="graduation-cap" class="ico"></i></div>
+    <div><div class="stat-label">Students</div><div class="stat-value">{{ stats.students }}</div><div class="stat-sub">{{ stats.students_active }} active</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i data-lucide="book" class="ico"></i></div>
+    <div><div class="stat-label">Subjects</div><div class="stat-value">{{ stats.subjects }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber"><i data-lucide="file-text" class="ico"></i></div>
+    <div><div class="stat-label">Invoices</div><div class="stat-value">{{ stats.invoices }}</div><div class="stat-sub">{{ stats.invoices_paid }} paid · {{ stats.invoices_unpaid }} unpaid</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple"><i data-lucide="banknote" class="ico"></i></div>
+    <div><div class="stat-label">Total Billed</div><div class="stat-value" style="font-size:20px">TZS {{ '{:,.0f}'.format(stats.total_billed) }}</div></div>
+  </div>
+</div>
+
+{% if school_admins %}
+<div class="card" style="margin-top:20px">
+  <div class="card-header"><div class="card-title">School Admins</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Username</th><th>Contact</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for u in school_admins %}
+        <tr>
+          <td><strong>{{ u.full_name }}</strong></td>
+          <td><code>{{ u.username }}</code></td>
+          <td>{{ u.email or '—' }}{% if u.phone %}<br><small>{{ u.phone }}</small>{% endif %}</td>
+          <td><span class="badge {{ 'badge-success' if u.active else 'badge-danger' }}">{{ 'Active' if u.active else 'Off' }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

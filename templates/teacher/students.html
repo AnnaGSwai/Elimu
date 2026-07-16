@@ -21,14 +21,14 @@
 
 <div class="page-header" style="margin-bottom: 24px">
   <div>
-    <h2 style="font-size: 22px; font-weight: 800; color: #1c1c1e">👨‍🎓 Manage Students</h2>
+    <h2 style="font-size: 22px; font-weight: 800; color: #1c1c1e"><i data-lucide="graduation-cap" class="ico"></i> Manage Students</h2>
     <p style="color: #6b7280; font-size: 13px; margin-top: 2px">Register new students into classes or view existing ones</p>
   </div>
 </div>
 
 <!-- Add Student Form -->
 <div class="add-card">
-  <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px; color: #1a6e3c">➕ Register New Student</div>
+  <div style="font-weight: 700; font-size: 15px; margin-bottom: 16px; color: #1a6e3c"><i data-lucide="plus" class="ico"></i> Register New Student</div>
   <form method="POST">
     <div class="form-grid">
       <div class="form-group">
@@ -72,7 +72,7 @@
 <!-- Students List -->
 <div class="card" style="padding: 0; overflow: hidden">
   <div style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between">
-    <div style="font-weight: 700; font-size: 15px">📋 All Enrolled Students ({{ students|length }})</div>
+    <div style="font-weight: 700; font-size: 15px"><i data-lucide="clipboard-list" class="ico"></i> All Enrolled Students ({{ students|length }})</div>
   </div>
   <div class="table-wrap">
     <table class="students-table">
@@ -90,14 +90,14 @@
         <tr>
           <td><strong>{{ s.full_name }}</strong></td>
           <td><code style="font-size: 12px; color: #6b7280">{{ s.adm_number }}</code></td>
-          <td>{{ '👦 Male' if s.gender == 'M' else '👧 Female' }}</td>
+          <td>{% if s.gender == 'M' %}<i data-lucide="mars" class="ico"></i> Male{% else %}<i data-lucide="venus" class="ico"></i> Female{% endif %}</td>
           <td>
             <span class="badge badge-info">{{ s.class_name }}</span>
             <span style="font-weight: 600; color: #6b7280; font-size: 12px; margin-left: 4px">{{ s.stream }}</span>
           </td>
           <td>
             {% if s.parent_id %}
-            <span class="badge badge-success" style="font-size: 10px">✅ Linked</span>
+            <span class="badge badge-success" style="font-size: 10px"><i data-lucide="circle-check" class="ico"></i> Linked</span>
             {% else %}
             <span class="badge badge-warning" style="font-size: 10px">⏳ Pending</span>
             {% endif %}

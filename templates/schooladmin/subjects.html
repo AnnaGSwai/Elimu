@@ -3,23 +3,46 @@
 {% block page_title %}Subject Management{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>📚 Subjects</h2>
-  <button class="btn btn-primary" onclick="openModal('addSubject')">+ Add Subject</button>
+  <h2><i data-lucide="book-open" class="ico"></i> Subjects</h2>
+  <button type="button" class="btn btn-primary" onclick="openModal('addSubject')">+ Add Subject</button>
 </div>
+<p style="color:var(--text-muted);font-size:13px;margin:-8px 0 16px">
+  Add subjects and assign teachers. Teachers only see subjects assigned to them for marks and timetable.
+</p>
 <div class="card">
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Subject Name</th><th>Code</th><th>Assigned Teacher</th></tr></thead>
+      <thead><tr><th>Subject Name</th><th>Code</th><th>Assigned Teacher</th><th>Actions</th></tr></thead>
       <tbody>
         {% for subj in subjects %}
         {% set teacher = teachers|selectattr('id','equalto',subj.teacher_id)|first %}
         <tr>
           <td><strong>{{ subj.name }}</strong></td>
           <td><span class="badge badge-info">{{ subj.code }}</span></td>
-          <td>{{ teacher.full_name if teacher else '<span class="badge badge-warning">Unassigned</span>'|safe }}</td>
+          <td>
+            {% if teacher %}
+              {{ teacher.full_name }}
+            {% else %}
+              <span class="badge badge-warning">Unassigned</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap">
+            <button type="button" class="btn btn-sm btn-secondary btn-edit-subj"
+              data-id="{{ subj.id }}"
+              data-name="{{ subj.name or '' }}"
+              data-code="{{ subj.code or '' }}"
+              data-teacher-id="{{ subj.teacher_id or '' }}">
+              <i data-lucide="pencil" class="ico"></i> Edit
+            </button>
+            <a href="{{ url_for('delete_subject', subj_id=subj.id) }}"
+               class="btn btn-sm btn-danger"
+               onclick="return confirm('Delete subject {{ subj.name }}? Only allowed if it has no marks.')">
+              <i data-lucide="trash-2" class="ico"></i> Delete
+            </a>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="3"><div class="empty-state"><div class="icon">📚</div><p>No subjects added yet.</p></div></td></tr>
+        <tr><td colspan="4"><div class="empty-state"><div class="icon"><i data-lucide="book-open" class="ico"></i></div><p>No subjects yet. Add subjects and assign teachers.</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -30,9 +53,9 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Add Subject</h3>
-      <button class="modal-close" onclick="closeModal('addSubject')">✕</button>
+      <button type="button" class="modal-close" onclick="closeModal('addSubject')"><i data-lucide="x" class="ico"></i></button>
     </div>
-    <form method="POST">
+    <form method="POST" action="{{ url_for('manage_subjects') }}">
       <div class="modal-body">
         <div class="grid-2">
           <div class="form-group"><label>Subject Name</label><input name="name" required placeholder="e.g. Mathematics"></div>
@@ -52,4 +75,46 @@
     </form>
   </div>
 </div>
+
+<div class="modal-overlay" id="editSubject">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Subject</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editSubject')"><i data-lucide="x" class="ico"></i></button>
+    </div>
+    <form method="POST" id="editSubjectForm">
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group"><label>Subject Name</label><input name="name" id="edit_name" required></div>
+          <div class="form-group"><label>Code</label><input name="code" id="edit_code" required></div>
+        </div>
+        <div class="form-group"><label>Assign Teacher</label>
+          <select name="teacher_id" id="edit_teacher_id">
+            <option value="">— Unassigned —</option>
+            {% for t in teachers %}<option value="{{ t.id }}">{{ t.full_name }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editSubject')">Cancel</button>
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.btn-edit-subj').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var id = btn.getAttribute('data-id');
+    document.getElementById('editSubjectForm').action = '/schooladmin/subjects/' + id + '/edit';
+    document.getElementById('edit_name').value = btn.getAttribute('data-name') || '';
+    document.getElementById('edit_code').value = btn.getAttribute('data-code') || '';
+    document.getElementById('edit_teacher_id').value = btn.getAttribute('data-teacher-id') || '';
+    openModal('editSubject');
+    if (window.lucide) lucide.createIcons();
+  });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Register Child — Elimu{% endblock %}
+{% block page_title %}Child Registration{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2><i data-lucide="user-plus" class="ico"></i> Register Your Child</h2>
+</div>
+
+{% if school %}
+<p style="color:var(--text-muted);font-size:13px;margin:-8px 0 16px">
+  Submit your child's details to <strong>{{ school.name }}</strong>. A school administrator will review your application and respond with approval or guidance.
+</p>
+{% endif %}
+
+{% if pending %}
+<div class="card" style="border-left:4px solid #d97706;margin-bottom:16px">
+  <div style="font-weight:700;font-size:15px;margin-bottom:8px"><i data-lucide="clock" class="ico"></i> Application Under Review</div>
+  <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">
+    Your application for <strong>{{ pending[0].full_name }}</strong> ({{ pending[0].class_name }}) is pending.
+    You will be notified here once the school admin responds.
+  </p>
+  <div style="font-size:13px">
+    <span class="badge badge-warning">PENDING</span>
+    <span style="color:var(--text-muted);margin-left:8px">Submitted {{ pending[0].created_at.strftime('%d %b %Y') if pending[0].created_at else '—' }}</span>
+  </div>
+</div>
+{% endif %}
+
+{% if can_submit %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Student Registration Form</div>
+  </div>
+  <form method="POST">
+    <div class="grid-2">
+      <div class="form-group"><label>Child's Full Name</label><input name="full_name" required placeholder="Student's full name"></div>
+      <div class="form-group"><label>Date of Birth</label><input name="dob" type="date"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Gender</label>
+        <select name="gender"><option value="M">Male</option><option value="F">Female</option></select>
+      </div>
+      <div class="form-group"><label>Admission Class</label>
+        <input type="text" value="Class 1" disabled style="background:#f3f4f6;color:#374151">
+        <small style="color:var(--text-muted);font-size:12px;display:block;margin-top:4px">
+          New admissions are registered for Class 1. The school admin will confirm placement.
+        </small>
+      </div>
+    </div>
+    <div class="form-group"><label>Additional Notes (optional)</label>
+      <textarea name="parent_notes" rows="3" placeholder="Any information the school should know…"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary"><i data-lucide="send" class="ico"></i> Submit Application</button>
+  </form>
+</div>
+{% endif %}
+
+{% if requests %}
+<div class="card" style="margin-top:16px">
+  <div class="card-header">
+    <div class="card-title">Application History</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Child</th>
+          <th>Class</th>
+          <th>Submitted</th>
+          <th>Status</th>
+          <th>School Response</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+        <tr>
+          <td><strong>{{ r.full_name }}</strong></td>
+          <td>{{ r.class_name }}{% if r.stream %} {{ r.stream }}{% endif %}</td>
+          <td>{{ r.created_at.strftime('%d %b %Y') if r.created_at else '—' }}</td>
+          <td>
+            {% if r.status == 'pending' %}
+            <span class="badge badge-warning">PENDING</span>
+            {% elif r.status == 'approved' %}
+            <span class="badge badge-success">APPROVED</span>
+            {% else %}
+            <span class="badge badge-danger">REJECTED</span>
+            {% endif %}
+          </td>
+          <td style="max-width:280px">
+            {% if r.admin_feedback %}
+            <div style="font-size:13px">{{ r.admin_feedback }}</div>
+            {% if r.status == 'approved' and r.student_id %}
+            <small style="color:var(--text-muted)">Your child has been admitted.</small>
+            {% elif r.status == 'rejected' %}
+            <small style="color:var(--text-muted)">Update details and submit a new application above.</small>
+            {% endif %}
+            {% else %}
+            <span style="color:var(--text-muted)">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if children %}
+<div style="margin-top:16px">
+  <a href="{{ url_for('parent_dashboard') }}" class="btn btn-secondary"><i data-lucide="layout-dashboard" class="ico"></i> Go to Dashboard</a>
+</div>
+{% endif %}
+{% endblock %}

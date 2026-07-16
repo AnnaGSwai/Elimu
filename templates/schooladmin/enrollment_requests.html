@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}Enrollment Requests — Elimu{% endblock %}
+{% block page_title %}Enrollment Applications{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2><i data-lucide="user-plus" class="ico"></i> Parent Enrollment Applications</h2>
+</div>
+<p style="color:var(--text-muted);font-size:13px;margin:-8px 0 16px">
+  Review child registration requests from parents. Approve to admit the student, or reject with feedback on how to proceed.
+</p>
+
+{% if pending_count %}
+<div class="card" style="border-left:4px solid #d97706;margin-bottom:16px;padding:14px 16px">
+  <strong>{{ pending_count }}</strong> application{{ 's' if pending_count != 1 else '' }} awaiting review
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Child</th>
+          <th>Class</th>
+          <th>Parent</th>
+          <th>Submitted</th>
+          <th>Notes</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+        {% set parent = parents.get(r.parent_id) %}
+        <tr>
+          <td>
+            <strong>{{ r.full_name }}</strong>
+            {% if r.gender %}<br><small>{{ r.gender }} · DOB {{ r.dob or '—' }}</small>{% endif %}
+          </td>
+          <td>{{ r.class_name }}{% if r.stream %} {{ r.stream }}{% endif %}</td>
+          <td>
+            {% if parent %}
+            {{ parent.full_name }}<br><small>{{ parent.username }}{% if parent.phone %} · {{ parent.phone }}{% endif %}</small>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ r.created_at.strftime('%d %b %Y') if r.created_at else '—' }}</td>
+          <td style="max-width:160px;font-size:12px">{{ r.parent_notes or '—' }}</td>
+          <td>
+            {% if r.status == 'pending' %}
+            <span class="badge badge-warning">PENDING</span>
+            {% elif r.status == 'approved' %}
+            <span class="badge badge-success">APPROVED</span>
+            {% else %}
+            <span class="badge badge-danger">REJECTED</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap">
+            {% if r.status == 'pending' %}
+            <button type="button" class="btn btn-sm btn-primary btn-review"
+              data-id="{{ r.id }}"
+              data-name="{{ r.full_name }}"
+              data-action="approve">
+              <i data-lucide="circle-check" class="ico"></i> Approve
+            </button>
+            <button type="button" class="btn btn-sm btn-danger btn-review"
+              data-id="{{ r.id }}"
+              data-name="{{ r.full_name }}"
+              data-action="reject">
+              <i data-lucide="x" class="ico"></i> Reject
+            </button>
+            {% elif r.admin_feedback %}
+            <small style="color:var(--text-muted)">{{ r.admin_feedback[:60] }}{% if r.admin_feedback|length > 60 %}…{% endif %}</small>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="icon"><i data-lucide="inbox" class="ico"></i></div>
+              <p>No enrollment applications yet.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="reviewModalTitle">Review Application</h3>
+      <button type="button" class="modal-close" onclick="closeModal('reviewModal')"><i data-lucide="x" class="ico"></i></button>
+    </div>
+    <form method="POST" id="reviewForm">
+      <div class="modal-body">
+        <p id="reviewModalDesc" style="font-size:13px;color:var(--text-muted);margin-bottom:14px"></p>
+        <div class="form-group"><label>Feedback to Parent</label>
+          <textarea name="admin_feedback" id="reviewFeedback" rows="4"
+            placeholder="Optional for approval. Required for rejection — explain what the parent should do next."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('reviewModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="reviewSubmitBtn">Confirm</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.btn-review').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var id = btn.getAttribute('data-id');
+    var name = btn.getAttribute('data-name');
+    var action = btn.getAttribute('data-action');
+    var form = document.getElementById('reviewForm');
+    var feedback = document.getElementById('reviewFeedback');
+    var submitBtn = document.getElementById('reviewSubmitBtn');
+
+    if (action === 'approve') {
+      form.action = '/schooladmin/enrollment-requests/' + id + '/approve';
+      document.getElementById('reviewModalTitle').textContent = 'Approve Application';
+      document.getElementById('reviewModalDesc').textContent =
+        'Admit ' + name + ' as a student. An admission number will be generated automatically.';
+      feedback.required = false;
+      feedback.placeholder = 'Optional welcome message or instructions for the parent…';
+      submitBtn.textContent = 'Approve & Admit';
+      submitBtn.className = 'btn btn-primary';
+    } else {
+      form.action = '/schooladmin/enrollment-requests/' + id + '/reject';
+      document.getElementById('reviewModalTitle').textContent = 'Reject Application';
+      document.getElementById('reviewModalDesc').textContent =
+        'Reject application for ' + name + '. Explain how the parent should proceed.';
+      feedback.required = true;
+      feedback.placeholder = 'Required — e.g. missing documents, wrong class, contact office…';
+      submitBtn.textContent = 'Reject with Feedback';
+      submitBtn.className = 'btn btn-danger';
+    }
+    openModal('reviewModal');
+  });
+});
+</script>
+{% endblock %}

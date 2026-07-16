@@ -29,7 +29,7 @@
 <!-- Student Info Card -->
 <div class="parent-info-card" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#1a6e3c,#2d8f55);border-radius:14px;padding:18px 20px;margin-bottom:20px;color:white">
   <div style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;backdrop-filter:blur(6px)">
-    {{ '👦' if student.gender == 'M' else '👧' }}
+    <i data-lucide="user" class="ico" style="width:26px;height:26px;color:#fff"></i>
   </div>
   <div style="flex:1;min-width:0">
     <div style="font-size:18px;font-weight:800;letter-spacing:-.3px">{{ student.full_name }}</div>
@@ -38,7 +38,7 @@
       · {{ 'Male' if student.gender == 'M' else 'Female' }}
     </div>
   </div>
-  <a href="{{ url_for('parent_dashboard') }}" class="btn btn-secondary btn-sm" style="flex-shrink:0">← Back</a>
+  <a href="{{ url_for('parent_dashboard') }}" class="btn btn-secondary btn-sm" style="flex-shrink:0"><i data-lucide="arrow-left" class="ico"></i> Back</a>
 </div>
 <style>@media(max-width:480px){.parent-info-card{flex-wrap:wrap;padding:14px}.parent-info-card a{width:100%;justify-content:center}}</style>
 
@@ -57,7 +57,7 @@
       <label>Year</label>
       <input name="year" type="number" value="{{ year }}" style="width:90px">
     </div>
-    <button class="btn btn-primary" type="submit">🔍 View Results</button>
+    <button class="btn btn-primary" type="submit"><i data-lucide="search" class="ico"></i> View Results</button>
   </form>
 </div>
 
@@ -82,11 +82,41 @@
 </div>
 {% endif %}
 
+{% if progress and progress.subject_rows %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title" style="margin-bottom:14px"><i data-lucide="trending-up" class="ico"></i> Progress by subject — {{ term }} {{ year }}</div>
+  <style>
+    .pbar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+    .pfill{height:100%;border-radius:999px;background:#1a6e3c}
+    .pfill.gB{background:#1967d2}.pfill.gC{background:#d97706}.pfill.gD{background:#ea8c2a}.pfill.gF{background:#c0392b}
+    .prow{display:grid;grid-template-columns:140px 1fr 56px 36px;gap:10px;align-items:center;margin-bottom:10px}
+    @media(max-width:480px){.prow{grid-template-columns:90px 1fr 48px 28px;gap:6px}}
+  </style>
+  {% for row in progress.subject_rows %}
+  <div class="prow">
+    <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ row.subject.name }}">
+      <span class="badge badge-info">{{ row.subject.code }}</span>
+    </div>
+    <div class="pbar"><div class="pfill g{{ row.grade }}" style="width:{{ [row.avg,100]|min }}%"></div></div>
+    <div style="font-weight:800;text-align:right" class="grade-{{ row.grade }}">{{ row.avg }}%</div>
+    <div style="font-weight:800;text-align:center" class="grade-{{ row.grade }}">{{ row.grade }}</div>
+  </div>
+  <div style="font-size:11px;color:#6b7280;margin:-4px 0 12px 0">
+    {{ row.exams_done }}/{{ row.exams_total }} exams entered
+    {% for et in progress.exam_types %}
+      {% set sc = row.scores.get(et) %}
+      · {{ et }}: {% if sc is not none %}{{ sc }}{% else %}—{% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Marklist Card -->
 <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">
   <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
     <div>
-      <div style="font-weight:700;font-size:15px">📊 Academic Marklist — {{ term }} {{ year }}</div>
+      <div style="font-weight:700;font-size:15px"><i data-lucide="layout-dashboard" class="ico"></i> Academic Marklist — {{ term }} {{ year }}</div>
       <div style="font-size:12px;color:#6b7280;margin-top:2px">
         Scores shown for:
         {% for et in exam_types %}<span style="color:#1a6e3c;font-weight:600">{{ et }}</span>{% if not loop.last %} · {% endif %}{% endfor %}
@@ -133,11 +163,11 @@
           <td style="background:#f0f7f3;font-size:12px">
             {% if subj_avg is not none %}
               {% set g = grade(subj_avg) %}
-              {% if g == 'A' %}🌟 Excellent
-              {% elif g == 'B' %}👍 Good
-              {% elif g == 'C' %}😊 Average
-              {% elif g == 'D' %}⚠️ Needs Improvement
-              {% else %}❌ Fail
+              {% if g == 'A' %}<i data-lucide="star" class="ico"></i> Excellent
+              {% elif g == 'B' %}<i data-lucide="thumbs-up" class="ico"></i> Good
+              {% elif g == 'C' %}<i data-lucide="smile" class="ico"></i> Average
+              {% elif g == 'D' %}<i data-lucide="triangle-alert" class="ico"></i> Needs Improvement
+              {% else %}<i data-lucide="circle-x" class="ico"></i> Fail
               {% endif %}
             {% else %}—{% endif %}
           </td>
@@ -148,7 +178,7 @@
   </div>
   {% else %}
   <div class="empty-state" style="padding:56px 24px">
-    <div class="icon">📊</div>
+    <div class="icon"><i data-lucide="layout-dashboard" class="ico"></i></div>
     <p>No results available for {{ term }} {{ year }}.<br>Try selecting a different term or year.</p>
   </div>
   {% endif %}
@@ -156,8 +186,9 @@
 
 <!-- Fee Status -->
 <div class="card" style="padding:0;overflow:hidden">
-  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb">
-    <div style="font-weight:700;font-size:15px">💳 Fee Status</div>
+  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div style="font-weight:700;font-size:15px"><i data-lucide="credit-card" class="ico"></i> Fee Status</div>
+    <a href="{{ url_for('parent_payments') }}" class="btn btn-sm btn-secondary">All payments &amp; debts</a>
   </div>
   {% if invoices %}
   <div class="table-wrap">
@@ -184,7 +215,7 @@
   </div>
   {% else %}
   <div class="empty-state" style="padding:40px">
-    <div class="icon">💳</div><p>No invoices found for this student.</p>
+    <div class="icon"><i data-lucide="credit-card" class="ico"></i></div><p>No invoices found for this student.</p>
   </div>
   {% endif %}
 </div>

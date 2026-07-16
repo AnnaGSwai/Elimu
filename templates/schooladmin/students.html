@@ -2,29 +2,93 @@
 {% block title %}Students — Elimu{% endblock %}
 {% block page_title %}Student Management{% endblock %}
 {% block content %}
+<style>
+.class-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+.class-card-wrap{position:relative}
+.class-card{display:block;background:var(--white);border:2px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .15s;text-align:left;text-decoration:none;color:inherit}
+.class-card:hover{border-color:var(--green);box-shadow:0 2px 8px rgba(26,110,60,.08)}
+.class-card.active{border-color:var(--green);background:#f0fdf4}
+.class-card-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.class-card-count{font-size:22px;font-weight:800;color:var(--green);line-height:1}
+.class-card-sub{font-size:10px;color:var(--text-muted);margin-top:2px}
+.class-card-enrol{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--green);font-size:16px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1}
+.class-card-enrol:hover{background:var(--green);color:white;border-color:var(--green)}
+.class-group-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.class-group-header h3{font-size:15px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.class-group-header .count{font-size:12px;font-weight:600;color:var(--text-muted)}
+</style>
+
 <div class="page-header">
-  <h2>🧑‍🎓 Students</h2>
-  <button class="btn btn-primary" onclick="openModal('addStudent')">+ Enrol Student</button>
+  <h2><i data-lucide="graduation-cap" class="ico"></i> Students</h2>
+  <button type="button" class="btn btn-primary" onclick="openEnrolModal('{{ selected_class }}')">+ Enrol Student</button>
 </div>
-<div class="card">
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Adm No.</th><th>Full Name</th><th>Class</th><th>Gender</th><th>Parent</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for s in students %}
-        <tr>
-          <td><code>{{ s.adm_number }}</code></td>
-          <td><strong>{{ s.full_name }}</strong></td>
-          <td>{{ s.class_name }} {{ s.stream }}</td>
-          <td>{{ s.gender or '—' }}</td>
-          <td>{% for p in parents %}{% if p.id == s.parent_id %}{{ p.full_name }}{% endif %}{% endfor %}</td>
-          <td><span class="badge {{ 'badge-success' if s.active else 'badge-danger' }}">{{ 'Active' if s.active else 'Inactive' }}</span></td>
-        </tr>
-        {% else %}
-        <tr><td colspan="6"><div class="empty-state"><div class="icon">🧑‍🎓</div><p>No students enrolled yet.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+
+<p style="color:var(--text-muted);font-size:13px;margin:-8px 0 14px">Select a class to view its students. Use + on a card to enrol directly into that class.</p>
+
+<div class="class-cards-grid" id="classCards">
+  {% for cls in class_levels %}
+  <div class="class-card-wrap">
+    <a href="{{ url_for('manage_students', cls=cls) }}" class="class-card{% if selected_class == cls %} active{% endif %}">
+      <div class="class-card-label">{{ cls }}</div>
+      <div class="class-card-count">{{ class_counts[cls] }}</div>
+      <div class="class-card-sub">student{{ 's' if class_counts[cls] != 1 else '' }}</div>
+    </a>
+    <button type="button" class="class-card-enrol" data-enrol-class="{{ cls }}" title="Enrol in {{ cls }}" aria-label="Enrol in {{ cls }}">+</button>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="class-group">
+  <div class="class-group-header">
+    <h3><i data-lucide="users" class="ico"></i> {{ selected_class }} <span class="count">({{ class_students|length }})</span></h3>
+    <button type="button" class="btn btn-sm btn-primary" onclick="openEnrolModal('{{ selected_class }}')">+ Enrol in {{ selected_class }}</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Adm No.</th><th>Full Name</th><th>Stream</th><th>Gender</th><th>Parent</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for s in class_students %}
+          <tr>
+            <td><code>{{ s.adm_number }}</code></td>
+            <td><strong>{{ s.full_name }}</strong></td>
+            <td>{{ s.stream }}</td>
+            <td>{{ s.gender or '—' }}</td>
+            <td>{{ parent_map[s.parent_id].full_name if s.parent_id and parent_map.get(s.parent_id) else '—' }}</td>
+            <td><span class="badge {{ 'badge-success' if s.active else 'badge-danger' }}">{{ 'Active' if s.active else 'Inactive' }}</span></td>
+            <td style="white-space:nowrap">
+              <button type="button" class="btn btn-sm btn-secondary btn-edit-student"
+                data-id="{{ s.id }}"
+                data-name="{{ s.full_name or '' }}"
+                data-adm="{{ s.adm_number or '' }}"
+                data-class="{{ s.class_name or '' }}"
+                data-stream="{{ s.stream or 'A' }}"
+                data-gender="{{ s.gender or '' }}"
+                data-dob="{{ s.dob or '' }}"
+                data-parent-id="{{ s.parent_id or '' }}"
+                data-active="{{ s.active }}">
+                <i data-lucide="pencil" class="ico"></i> Edit
+              </button>
+              <a href="{{ url_for('delete_student', stud_id=s.id) }}?cls={{ selected_class|urlencode }}"
+                 class="btn btn-sm btn-danger"
+                 onclick="return confirm('Delete {{ s.full_name }}? If they have marks or invoices, they will be deactivated instead.')">
+                <i data-lucide="trash-2" class="ico"></i> Delete
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state" style="padding:28px">
+                <p>No students in {{ selected_class }} yet.</p>
+                <button type="button" class="btn btn-sm btn-primary" style="margin-top:8px" onclick="openEnrolModal('{{ selected_class }}')">Enrol first student</button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -32,21 +96,17 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Enrol New Student</h3>
-      <button class="modal-close" onclick="closeModal('addStudent')">✕</button>
+      <button type="button" class="modal-close" onclick="closeModal('addStudent')"><i data-lucide="x" class="ico"></i></button>
     </div>
-    <form method="POST">
+    <form method="POST" action="{{ url_for('manage_students', cls=selected_class) }}">
       <div class="modal-body">
         <div class="form-group"><label>Full Name</label><input name="full_name" required placeholder="Student's full name"></div>
         <div class="grid-3">
           <div class="form-group"><label>Class</label>
-            <select name="class_name" required>
-              <option value="Class 1">Class 1</option>
-              <option value="Class 2">Class 2</option>
-              <option value="Class 3">Class 3</option>
-              <option value="Class 4">Class 4</option>
-              <option value="Class 5">Class 5</option>
-              <option value="Class 6">Class 6</option>
-              <option value="Class 7">Class 7</option>
+            <select name="class_name" id="add_class_name" required>
+              {% for cls in class_levels %}
+              <option value="{{ cls }}"{% if cls == selected_class %} selected{% endif %}>{{ cls }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="form-group"><label>Stream</label>
@@ -71,4 +131,87 @@
     </form>
   </div>
 </div>
+
+<div class="modal-overlay" id="editStudent">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Student</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editStudent')"><i data-lucide="x" class="ico"></i></button>
+    </div>
+    <form method="POST" id="editStudentForm">
+      <input type="hidden" name="return_class" id="edit_return_class" value="{{ selected_class }}">
+      <div class="modal-body">
+        <div class="form-group"><label>Admission No.</label><input id="edit_adm" disabled></div>
+        <div class="form-group"><label>Full Name</label><input name="full_name" id="edit_name" required></div>
+        <div class="grid-3">
+          <div class="form-group"><label>Class</label>
+            <select name="class_name" id="edit_class" required>
+              {% for cls in class_levels %}
+              <option value="{{ cls }}">{{ cls }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group"><label>Stream</label>
+            <select name="stream" id="edit_stream"><option>A</option><option>B</option><option>C</option></select>
+          </div>
+          <div class="form-group"><label>Gender</label>
+            <select name="gender" id="edit_gender"><option value="M">Male</option><option value="F">Female</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Date of Birth</label><input name="dob" id="edit_dob" type="date"></div>
+        <div class="form-group"><label>Parent Account (optional)</label>
+          <select name="parent_id" id="edit_parent_id">
+            <option value="">— None / Add later —</option>
+            {% for p in parents %}<option value="{{ p.id }}">{{ p.full_name }} ({{ p.username }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select name="active" id="edit_active">
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editStudent')">Cancel</button>
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function openEnrolModal(className) {
+  if (className) {
+    document.getElementById('add_class_name').value = className;
+  }
+  openModal('addStudent');
+}
+
+document.querySelectorAll('.class-card-enrol').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    openEnrolModal(btn.getAttribute('data-enrol-class'));
+  });
+});
+
+document.querySelectorAll('.btn-edit-student').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var id = btn.getAttribute('data-id');
+    document.getElementById('editStudentForm').action = '/schooladmin/students/' + id + '/edit';
+    document.getElementById('edit_adm').value = btn.getAttribute('data-adm') || '';
+    document.getElementById('edit_name').value = btn.getAttribute('data-name') || '';
+    document.getElementById('edit_class').value = btn.getAttribute('data-class') || '';
+    document.getElementById('edit_stream').value = btn.getAttribute('data-stream') || 'A';
+    document.getElementById('edit_gender').value = btn.getAttribute('data-gender') || '';
+    document.getElementById('edit_dob').value = btn.getAttribute('data-dob') || '';
+    document.getElementById('edit_parent_id').value = btn.getAttribute('data-parent-id') || '';
+    document.getElementById('edit_active').value = btn.getAttribute('data-active') === '1' ? '1' : '0';
+    openModal('editStudent');
+    if (window.lucide) lucide.createIcons();
+  });
+});
+</script>
 {% endblock %}

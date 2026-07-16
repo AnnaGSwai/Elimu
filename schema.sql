@@ -94,3 +94,31 @@ CREATE TABLE IF NOT EXISTS payment (
     school_id INTEGER REFERENCES school(id),
     created_by INTEGER REFERENCES "user"(id)
 );
+
+CREATE TABLE IF NOT EXISTS student_enrollment_request (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_id INTEGER NOT NULL REFERENCES "user"(id),
+    school_id INTEGER NOT NULL REFERENCES school(id),
+    full_name VARCHAR(120) NOT NULL,
+    class_name VARCHAR(20) NOT NULL,
+    stream VARCHAR(10),
+    dob VARCHAR(20),
+    gender VARCHAR(10),
+    parent_notes TEXT,
+    status VARCHAR(20) DEFAULT 'pending',
+    admin_feedback TEXT,
+    reviewed_by INTEGER REFERENCES "user"(id),
+    reviewed_at TIMESTAMP,
+    student_id INTEGER REFERENCES student(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_otp (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES "user"(id),
+    otp_hash VARCHAR(200) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used INTEGER DEFAULT 0,
+    attempts INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

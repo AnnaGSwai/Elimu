@@ -43,7 +43,7 @@
 <!-- Page header -->
 <div class="page-header" style="margin-bottom:24px">
   <div>
-    <h2 style="font-size:20px;font-weight:800;color:#1c1c1e">📅 Weekly Timetable</h2>
+    <h2 style="font-size:20px;font-weight:800;color:#1c1c1e"><i data-lucide="calendar" class="ico"></i> Weekly Timetable</h2>
     <p style="color:#6b7280;font-size:13px;margin-top:2px">Your scheduled lessons this week</p>
   </div>
   <button class="btn btn-primary" onclick="openModal('addSlot')">
@@ -54,15 +54,15 @@
 <!-- Stats bar -->
 <div class="stats-grid" style="margin-bottom:24px">
   <div class="stat-card">
-    <div class="stat-icon green">📅</div>
+    <div class="stat-icon green"><i data-lucide="calendar" class="ico"></i></div>
     <div><div class="stat-label">Total Slots</div><div class="stat-value">{{ timetable|length }}</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon blue">📚</div>
+    <div class="stat-icon blue"><i data-lucide="book-open" class="ico"></i></div>
     <div><div class="stat-label">Subjects</div><div class="stat-value">{{ subjects|length }}</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon amber">🏫</div>
+    <div class="stat-icon amber"><i data-lucide="school" class="ico"></i></div>
     <div><div class="stat-label">Classes</div><div class="stat-value">{{ timetable|map(attribute='class_name')|list|unique|list|length if timetable else 0 }}</div></div>
   </div>
 </div>
@@ -70,7 +70,7 @@
 <!-- Visual Grid -->
 <div class="card" style="padding:0;overflow:hidden;margin-bottom:24px">
   <div style="padding:18px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
-    <div style="font-weight:700;font-size:15px">📋 Visual Schedule</div>
+    <div style="font-weight:700;font-size:15px"><i data-lucide="clipboard-list" class="ico"></i> Visual Schedule</div>
     <div style="font-size:12px;color:#6b7280">Hover over slots for details</div>
   </div>
   <div class="tt-visual">
@@ -107,7 +107,7 @@
   </div>
   {% if not timetable %}
   <div class="empty-state" style="padding:60px 24px">
-    <div class="icon">📅</div>
+    <div class="icon"><i data-lucide="calendar" class="ico"></i></div>
     <p>No slots added yet. Click <strong>Add Lesson Slot</strong> to build your timetable.</p>
   </div>
   {% endif %}
@@ -117,7 +117,7 @@
 {% if timetable %}
 <div class="card" style="padding:0;overflow:hidden">
   <div style="padding:18px 20px;border-bottom:1px solid #e5e7eb">
-    <div style="font-weight:700;font-size:15px">🗂 All Scheduled Slots</div>
+    <div style="font-weight:700;font-size:15px"><i data-lucide="folders" class="ico"></i> All Scheduled Slots</div>
   </div>
   <div class="table-wrap">
     <table class="slots-list">
@@ -149,7 +149,7 @@
           <td><span style="font-weight:600">{{ tt.class_name }}</span> <span style="color:#6b7280">{{ tt.stream }}</span></td>
           <td>
             <a href="{{ url_for('delete_timetable', tt_id=tt.id) }}" class="del-btn"
-               onclick="return confirm('Remove this slot?')">🗑 Remove</a>
+               onclick="return confirm('Remove this slot?')"><i data-lucide="trash-2" class="ico"></i> Remove</a>
           </td>
         </tr>
         {% endfor %}
@@ -163,8 +163,8 @@
 <div class="modal-overlay" id="addSlot">
   <div class="modal">
     <div class="modal-header">
-      <h3>➕ Add Lesson Slot</h3>
-      <button class="modal-close" onclick="closeModal('addSlot')">✕</button>
+      <h3><i data-lucide="plus" class="ico"></i> Add Lesson Slot</h3>
+      <button class="modal-close" onclick="closeModal('addSlot')"><i data-lucide="x" class="ico"></i></button>
     </div>
     <form method="POST">
       <div class="modal-body">
@@ -212,7 +212,7 @@
           </div>
         </div>
         <div style="background:#e8f5ee;border-radius:8px;padding:10px 14px;font-size:12px;color:#1a6e3c">
-          💡 Slots appear in the visual grid based on their start time.
+          <i data-lucide="lightbulb" class="ico"></i> Slots appear in the visual grid based on their start time.
         </div>
       </div>
       <div class="modal-footer">

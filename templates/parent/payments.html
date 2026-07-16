@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% block title %}Payments — Elimu{% endblock %}
+{% block page_title %}Fees & Payments{% endblock %}
+{% block content %}
+<style>
+.pay-tabs{display:flex;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:#f9fafb}
+.pay-tab{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--white);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text);transition:all .15s}
+.pay-tab:hover{border-color:var(--green);color:var(--green)}
+.pay-tab.active{background:var(--green);color:white;border-color:var(--green)}
+.pay-tab .tab-count{opacity:.85;font-weight:500;margin-left:4px}
+.pay-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.pay-summary-item{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.pay-summary-item .lbl{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px}
+.pay-summary-item .val{font-size:18px;font-weight:800;margin-top:4px}
+.pay-summary-item.debt .val{color:#c0392b}
+.pay-summary-item.pending .val{color:#d97706}
+.pay-summary-item.paid .val{color:var(--green)}
+.student-link{background:none;border:none;padding:0;font:inherit;color:var(--green);font-weight:600;cursor:pointer;text-align:left}
+.student-link:hover{text-decoration:underline}
+.cn-code{font-size:13px;background:#fff3cd;padding:4px 10px;border-radius:6px;font-weight:700;letter-spacing:.5px;border:1px solid #fde68a;white-space:nowrap}
+.modal-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.modal-stat{background:#f9fafb;border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}
+.modal-stat .lbl{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase}
+.modal-stat .val{font-size:16px;font-weight:800;margin-top:4px}
+.modal-stat.debt .val{color:#c0392b}
+.modal-stat.pending .val{color:#d97706}
+.modal-stat.paid .val{color:var(--green)}
+</style>
+
+<div class="page-header">
+  <h2><i data-lucide="credit-card" class="ico"></i> Fees & Payments</h2>
+</div>
+
+{% if not students %}
+<div class="card" style="margin-bottom:16px">
+  <div class="empty-state">
+    <div class="icon"><i data-lucide="graduation-cap" class="ico"></i></div>
+    <p>No children linked to your account yet.<br>Please contact your school administrator.</p>
+  </div>
+</div>
+{% else %}
+<div class="pay-summary">
+  <div class="pay-summary-item debt">
+    <div class="lbl">Outstanding</div>
+    <div class="val">TZS {{ '{:,.0f}'.format(total_debt) }}</div>
+  </div>
+  <div class="pay-summary-item pending">
+    <div class="lbl">Pending</div>
+    <div class="val">{{ pending_count }}</div>
+  </div>
+  <div class="pay-summary-item paid">
+    <div class="lbl">Total Paid</div>
+    <div class="val">TZS {{ '{:,.0f}'.format(total_paid) }}</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px">
+    <i data-lucide="list" class="ico"></i> Payment Records
+  </div>
+  <p style="padding:10px 16px 0;margin:0;color:var(--text-muted);font-size:13px">Click a student name to view their payment details. Control numbers are saved on each row once generated.</p>
+
+  <div class="pay-tabs" role="tablist" aria-label="Filter payment records">
+    <button type="button" class="pay-tab active" data-view="all" role="tab" aria-selected="true">
+      All<span class="tab-count">({{ all_records|length }})</span>
+    </button>
+    <button type="button" class="pay-tab" data-view="debt" role="tab" aria-selected="false">
+      Debts<span class="tab-count">({{ debt_count }})</span>
+    </button>
+    <button type="button" class="pay-tab" data-view="pending" role="tab" aria-selected="false">
+      Pending<span class="tab-count">({{ pending_count }})</span>
+    </button>
+    <button type="button" class="pay-tab" data-view="completed" role="tab" aria-selected="false">
+      Completed<span class="tab-count">({{ completed_count }})</span>
+    </button>
+  </div>
+
+  <div class="table-wrap" style="margin:0;border:none;border-radius:0">
+    <table id="paymentsTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Student</th>
+          <th>Invoice</th>
+          <th>Control No.</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in all_records %}
+        <tr data-type="{{ row.type }}">
+          <td>{{ row.date.strftime('%d %b %Y') if row.date else '—' }}</td>
+          <td>
+            {% if row.type == 'debt' %}
+            <span class="badge badge-danger">DEBT</span>
+            {% elif row.type == 'pending' %}
+            <span class="badge badge-warning">PENDING</span>
+            {% else %}
+            <span class="badge badge-success">PAID</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if row.student %}
+            <button type="button" class="student-link" onclick="openStudentPayModal({{ row.student.id }})">
+              {{ row.student.full_name }}
+            </button>
+            <br><small>{{ row.student.adm_number }}</small>
+            {% else %}—{% endif %}
+          </td>
+          <td><code>{{ row.ref }}</code></td>
+          <td>
+            {% if row.control_number %}
+            <code class="cn-code">{{ row.control_number }}</code>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ row.description }}{% if row.term %}<br><small style="color:var(--text-muted)">{{ row.term }}</small>{% endif %}</td>
+          <td><strong>TZS {{ '{:,.0f}'.format(row.amount) }}</strong></td>
+          <td>
+            {% if row.type == 'debt' %}
+            <span class="badge {% if row.status=='partial' %}badge-warning{% else %}badge-danger{% endif %}">{{ row.status | upper }}</span>
+            {% elif row.type == 'pending' %}
+            <span class="badge badge-warning">PENDING</span>
+            {% else %}
+            <span class="badge badge-success">PAID</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if row.type == 'debt' and row.can_generate %}
+            <a href="{{ url_for('parent_generate_control_number', inv_id=row.invoice_id) }}"
+               class="btn btn-sm btn-primary"
+               onclick="return confirm('Generate control number for invoice {{ row.ref }}?')">
+              <i data-lucide="hash" class="ico"></i> Generate
+            </a>
+            {% elif row.control_number %}
+            <button type="button" class="btn btn-sm btn-secondary" onclick="copyControlNumber('{{ row.control_number }}')">
+              <i data-lucide="copy" class="ico"></i> Copy
+            </button>
+            {% elif row.type == 'completed' and row.payment %}
+            <a href="{{ url_for('download_receipt', pay_id=row.payment.id) }}" class="btn btn-sm btn-secondary" target="_blank">
+              <i data-lucide="file" class="ico"></i> PDF
+            </a>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr id="emptyRow">
+          <td colspan="9">
+            <div class="empty-state">
+              <div class="icon"><i data-lucide="credit-card" class="ico"></i></div>
+              <p>No payment records found{% if not students %} — no children linked{% else %} for the selected filter{% endif %}.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div id="filterEmpty" style="display:none;padding:32px 16px;text-align:center;color:var(--text-muted);font-size:13px">
+    <i data-lucide="filter" class="ico"></i> No records match this filter.
+  </div>
+</div>
+
+<div class="modal-overlay" id="studentPayModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="spmTitle">Student Payments</h3>
+      <button type="button" class="modal-close" onclick="closeModal('studentPayModal')"><i data-lucide="x" class="ico"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="spmMeta" style="color:var(--text-muted);font-size:13px;margin-bottom:14px"></div>
+      <div class="modal-stat-grid">
+        <div class="modal-stat debt">
+          <div class="lbl">Outstanding</div>
+          <div class="val" id="spmDebt">—</div>
+        </div>
+        <div class="modal-stat pending">
+          <div class="lbl">Pending</div>
+          <div class="val" id="spmPending">—</div>
+        </div>
+        <div class="modal-stat paid">
+          <div class="lbl">Total Paid</div>
+          <div class="val" id="spmPaid">—</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Type</th><th>Invoice</th><th>Control No.</th><th>Amount</th><th></th></tr>
+          </thead>
+          <tbody id="spmRecords"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closeModal('studentPayModal')">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+window.STUDENT_PAY_DATA = {{ student_pay_json | safe }};
+
+function fmtMoney(n) {
+  return 'TZS ' + Number(n || 0).toLocaleString('en-US', {maximumFractionDigits: 0});
+}
+
+function copyControlNumber(cn) {
+  if (!cn) return;
+  navigator.clipboard.writeText(cn).then(function() {
+    alert('Control number copied: ' + cn);
+  }).catch(function() {
+    prompt('Copy control number:', cn);
+  });
+}
+
+function typeBadge(type, status) {
+  if (type === 'debt') {
+    var cls = status === 'partial' ? 'badge-warning' : 'badge-danger';
+    return '<span class="badge ' + cls + '">' + (status || 'UNPAID').toUpperCase() + '</span>';
+  }
+  if (type === 'pending') return '<span class="badge badge-warning">PENDING</span>';
+  return '<span class="badge badge-success">PAID</span>';
+}
+
+function openStudentPayModal(studentId) {
+  var data = window.STUDENT_PAY_DATA[String(studentId)];
+  if (!data) return;
+
+  document.getElementById('spmTitle').textContent = data.name;
+  document.getElementById('spmMeta').innerHTML =
+    data.class_name + ' · <code>' + data.adm + '</code>';
+  document.getElementById('spmDebt').textContent = fmtMoney(data.debt);
+  document.getElementById('spmPending').textContent = data.pending_count;
+  document.getElementById('spmPaid').textContent = fmtMoney(data.paid);
+
+  var tbody = document.getElementById('spmRecords');
+  if (!data.records.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state" style="padding:24px"><p>No payment records for this student.</p></div></td></tr>';
+  } else {
+    tbody.innerHTML = data.records.map(function(r) {
+      var cn = r.control_number || '—';
+      var cnCell = r.control_number
+        ? '<code class="cn-code">' + r.control_number + '</code>'
+        : '—';
+      var action = '—';
+      if (r.type === 'debt' && r.can_generate && r.generate_url) {
+        action = '<a href="' + r.generate_url + '" class="btn btn-sm btn-primary" onclick="return confirm(\'Generate control number?\')"><i data-lucide="hash" class="ico"></i> Generate</a>';
+      } else if (r.control_number) {
+        action = '<button type="button" class="btn btn-sm btn-secondary" onclick="copyControlNumber(\'' + r.control_number + '\')"><i data-lucide="copy" class="ico"></i> Copy</button>';
+      } else if (r.pay_id) {
+        action = '<a href="/accountant/receipt/' + r.pay_id + '/pdf" class="btn btn-sm btn-secondary" target="_blank"><i data-lucide="file" class="ico"></i> PDF</a>';
+      }
+      return '<tr>' +
+        '<td>' + r.date + '</td>' +
+        '<td>' + typeBadge(r.type, r.status) + '</td>' +
+        '<td><code>' + r.ref + '</code></td>' +
+        '<td>' + cnCell + '</td>' +
+        '<td><strong>' + fmtMoney(r.amount) + '</strong></td>' +
+        '<td>' + action + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  openModal('studentPayModal');
+  if (window.lucide) lucide.createIcons();
+}
+
+(function() {
+  var tabs = document.querySelectorAll('.pay-tab');
+  var rows = document.querySelectorAll('#paymentsTable tbody tr[data-type]');
+  var filterEmpty = document.getElementById('filterEmpty');
+  var tableWrap = document.querySelector('#paymentsTable').closest('.table-wrap');
+
+  function applyFilter(view) {
+    var visible = 0;
+    tabs.forEach(function(tab) {
+      var on = tab.getAttribute('data-view') === view;
+      tab.classList.toggle('active', on);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    rows.forEach(function(row) {
+      var show = view === 'all' || row.getAttribute('data-type') === view;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (rows.length && filterEmpty && tableWrap) {
+      filterEmpty.style.display = visible === 0 ? 'block' : 'none';
+      tableWrap.style.display = visible === 0 ? 'none' : '';
+    }
+    if (window.lucide) lucide.createIcons();
+  }
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      applyFilter(tab.getAttribute('data-view'));
+    });
+  });
+
+  var params = new URLSearchParams(window.location.search);
+  var initial = params.get('view') || 'all';
+  if (['all', 'debt', 'pending', 'completed'].indexOf(initial) >= 0 && rows.length) {
+    applyFilter(initial);
+  }
+
+  var studentParam = params.get('student');
+  if (studentParam && window.STUDENT_PAY_DATA[studentParam]) {
+    openStudentPayModal(studentParam);
+  }
+})();
+</script>
+{% endblock %}

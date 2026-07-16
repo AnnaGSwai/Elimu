@@ -3,7 +3,7 @@
 {% block page_title %}School Management{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>🏫 Schools</h2>
+  <h2><i data-lucide="school" class="ico"></i> Schools</h2>
   <button class="btn btn-primary" onclick="openModal('addSchool')">+ Add School</button>
 </div>
 <div class="card">
@@ -19,14 +19,15 @@
           <td>{{ s.phone or '—' }}<br><small>{{ s.email or '' }}</small></td>
           <td><span class="badge {{ 'badge-success' if s.active else 'badge-danger' }}">{{ 'Active' if s.active else 'Inactive' }}</span></td>
           <td style="white-space:nowrap">
+            <a href="{{ url_for('view_school', sid=s.id) }}" class="btn btn-sm btn-secondary">View</a>
             <a href="{{ url_for('toggle_school', sid=s.id) }}" class="btn btn-sm {{ 'btn-danger' if s.active else 'btn-secondary' }}">
               {{ 'Deactivate' if s.active else 'Activate' }}
             </a>
-            <a href="{{ url_for('delete_school', sid=s.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete this school and all its data?')">🗑 Delete</a>
+            <a href="{{ url_for('delete_school', sid=s.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete this school and all its data?')"><i data-lucide="trash-2" class="ico"></i> Delete</a>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6"><div class="empty-state"><div class="icon">🏫</div><p>No schools registered yet.</p></div></td></tr>
+        <tr><td colspan="6"><div class="empty-state"><div class="icon"><i data-lucide="school" class="ico"></i></div><p>No schools registered yet.</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -37,7 +38,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Register New School</h3>
-      <button class="modal-close" onclick="closeModal('addSchool')">✕</button>
+      <button class="modal-close" onclick="closeModal('addSchool')"><i data-lucide="x" class="ico"></i></button>
     </div>
     <form method="POST">
       <div class="modal-body">

@@ -2,26 +2,90 @@
 {% block title %}Parent — Elimu{% endblock %}
 {% block page_title %}Parent Portal{% endblock %}
 {% block content %}
+<style>
+.progress-track{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#1a6e3c,#2d8f55);transition:width .35s ease}
+.progress-fill.gB{background:linear-gradient(90deg,#1967d2,#3b82f6)}
+.progress-fill.gC{background:linear-gradient(90deg,#d97706,#f59e0b)}
+.progress-fill.gD{background:linear-gradient(90deg,#ea8c2a,#f97316)}
+.progress-fill.gF{background:linear-gradient(90deg,#c0392b,#ef4444)}
+.child-meta{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 14px}
+.child-chip{background:#f3f4f6;border-radius:8px;padding:8px 10px;min-width:72px}
+.child-chip .lbl{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.child-chip .val{font-size:16px;font-weight:800;color:#1c1c1e;margin-top:2px}
+.subj-mini{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px}
+.subj-mini .name{flex:0 0 90px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subj-mini .bar{flex:1}
+.subj-mini .pct{flex:0 0 42px;text-align:right;font-weight:700;color:#1a6e3c}
+</style>
+
 <div style="margin-bottom:24px">
-  <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">👨‍👩‍👧 My Children</h2>
-  <p style="color:#6b7280;font-size:13px">View academic results and fee status for your children.</p>
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:4px"><i data-lucide="users-round" class="ico"></i> My Children</h2>
+  <p style="color:#6b7280;font-size:13px">Track academic progress and fee status for each child.</p>
+  <a href="{{ url_for('parent_payments') }}" class="btn btn-secondary btn-sm" style="margin-top:10px">
+    <i data-lucide="credit-card" class="ico"></i> View Fees &amp; Payments
+  </a>
 </div>
 
-{% if children %}
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
-  {% for child in children %}
+{% if children_progress %}
+<div data-live-search=".card" data-live-search-placeholder="Search children…"
+     style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+  {% for item in children_progress %}
+  {% set child = item.child %}
+  {% set p = item.progress %}
   <div class="card" style="border-top:4px solid var(--green)">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <div style="width:52px;height:52px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px">
-        {{ '👦' if child.gender == 'M' else '👧' }}
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+      <div style="width:52px;height:52px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i data-lucide="user" class="ico" style="width:24px;height:24px;color:var(--green)"></i>
       </div>
-      <div>
+      <div style="min-width:0">
         <div style="font-weight:700;font-size:16px">{{ child.full_name }}</div>
-        <div style="color:#6b7280;font-size:13px">{{ child.class_name }} {{ child.stream }} · <code>{{ child.adm_number }}</code></div>
+        <div style="color:#6b7280;font-size:13px">{{ child.class_name }}{% if child.stream %} {{ child.stream }}{% endif %} · <code>{{ child.adm_number }}</code></div>
       </div>
     </div>
-    <a href="{{ url_for('parent_results', student_id=child.id) }}" class="btn btn-primary" style="width:100%;justify-content:center">
-      📋 View Results & Fees
+
+    {% if p.avg is not none %}
+    <div class="child-meta">
+      <div class="child-chip">
+        <div class="lbl">Average</div>
+        <div class="val grade-{{ p.grade }}">{{ p.avg }}%</div>
+      </div>
+      <div class="child-chip">
+        <div class="lbl">Grade</div>
+        <div class="val grade-{{ p.grade }}">{{ p.grade }}</div>
+      </div>
+      <div class="child-chip">
+        <div class="lbl">Period</div>
+        <div class="val" style="font-size:13px">{{ p.term }} {{ p.year }}</div>
+      </div>
+      <div class="child-chip">
+        <div class="lbl">Subjects</div>
+        <div class="val" style="font-size:13px">{{ p.subjects_with_marks }}/{{ p.subjects_total }}</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Overall progress</div>
+    <div class="progress-track" style="margin-bottom:12px">
+      <div class="progress-fill g{{ p.grade }}" style="width:{{ [p.avg, 100]|min }}%"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Subject progress</div>
+    {% for row in p.subject_rows[:5] %}
+    <div class="subj-mini">
+      <div class="name" title="{{ row.subject.name }}">{{ row.subject.code }}</div>
+      <div class="bar"><div class="progress-track"><div class="progress-fill g{{ row.grade }}" style="width:{{ [row.avg, 100]|min }}%"></div></div></div>
+      <div class="pct">{{ row.avg }}%</div>
+    </div>
+    {% endfor %}
+    {% if p.subject_rows|length > 5 %}
+    <div style="font-size:12px;color:#6b7280;margin-top:8px">+{{ p.subject_rows|length - 5 }} more subjects</div>
+    {% endif %}
+    {% else %}
+    <div style="padding:12px 0;color:#6b7280;font-size:13px">No results recorded yet for this child.</div>
+    {% endif %}
+
+    <a href="{{ url_for('parent_results', student_id=child.id) }}" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px">
+      <i data-lucide="trending-up" class="ico"></i> View Full Progress
     </a>
   </div>
   {% endfor %}
@@ -29,8 +93,9 @@
 {% else %}
 <div class="card">
   <div class="empty-state">
-    <div class="icon">🧑‍🎓</div>
-    <p>No children linked to your account yet.<br>Please contact your school administrator.</p>
+    <div class="icon"><i data-lucide="graduation-cap" class="ico"></i></div>
+    <p>No children linked to your account yet.<br>
+    <a href="{{ url_for('parent_enroll') }}">Register your child</a> for school admin approval.</p>
   </div>
 </div>
 {% endif %}

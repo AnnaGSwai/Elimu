@@ -18,7 +18,7 @@
             <td>{{ student.full_name if student else '—' }}<br><small>{{ student.adm_number if student else '' }}</small></td>
             <td>TZS {{ '{:,.0f}'.format(inv.amount) if inv else '—' }}</td>
             <td>
-              <button class="btn btn-primary btn-sm" onclick="openPayModal('{{ p.id }}','{{ p.control_number }}','{{ student.full_name if student else '' }}','{{ inv.amount if inv else 0 }}')">💳 Record</button>
+              <button class="btn btn-primary btn-sm" onclick="openPayModal('{{ p.id }}','{{ p.control_number }}','{{ student.full_name if student else '' }}','{{ inv.amount if inv else 0 }}')"><i data-lucide="credit-card" class="ico"></i> Record</button>
             </td>
           </tr>
           {% endfor %}
@@ -30,7 +30,7 @@
 {% endif %}
 
 <div class="page-header">
-  <h2>💳 Payment History</h2>
+  <h2><i data-lucide="credit-card" class="ico"></i> Payment History</h2>
 </div>
 <div class="card">
   <div class="table-wrap">
@@ -48,11 +48,11 @@
           <td><strong>TZS {{ '{:,.0f}'.format(p.amount_paid) }}</strong></td>
           <td><span class="badge badge-info">{{ p.payment_method }}</span></td>
           <td>{{ p.paid_at.strftime('%d %b %Y') if p.paid_at else '—' }}</td>
-          <td><a href="{{ url_for('download_receipt', pay_id=p.id) }}" class="btn btn-sm btn-secondary" target="_blank">📄 PDF</a></td>
+          <td><a href="{{ url_for('download_receipt', pay_id=p.id) }}" class="btn btn-sm btn-secondary" target="_blank"><i data-lucide="file" class="ico"></i> PDF</a></td>
         </tr>
         {% endif %}
         {% else %}
-        <tr><td colspan="7"><div class="empty-state"><div class="icon">💳</div><p>No payments recorded yet.</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><div class="icon"><i data-lucide="credit-card" class="ico"></i></div><p>No payments recorded yet.</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -64,7 +64,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Record Payment</h3>
-      <button class="modal-close" onclick="closeModal('payModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('payModal')"><i data-lucide="x" class="ico"></i></button>
     </div>
     <form id="payForm" method="POST">
       <div class="modal-body">
@@ -86,7 +86,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('payModal')">Cancel</button>
-        <button class="btn btn-primary">✅ Confirm Payment</button>
+        <button class="btn btn-primary"><i data-lucide="circle-check" class="ico"></i> Confirm Payment</button>
       </div>
     </form>
   </div>

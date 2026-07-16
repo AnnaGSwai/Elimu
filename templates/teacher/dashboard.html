@@ -4,15 +4,15 @@
 {% block content %}
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-icon blue">📚</div>
+    <div class="stat-icon blue"><i data-lucide="book-open" class="ico"></i></div>
     <div><div class="stat-label">My Subjects</div><div class="stat-value">{{ subjects|length }}</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon green">✏️</div>
+    <div class="stat-icon green"><i data-lucide="pencil" class="ico"></i></div>
     <div><div class="stat-label">Marks Entered</div><div class="stat-value">{{ marks|length }}</div></div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon amber">📅</div>
+    <div class="stat-icon amber"><i data-lucide="calendar" class="ico"></i></div>
     <div><div class="stat-label">Timetable Slots</div><div class="stat-value">{{ timetable|length }}</div></div>
   </div>
 </div>
@@ -20,8 +20,8 @@
 <div class="grid-2" style="gap:20px">
   <div class="card">
     <div class="card-header">
-      <div class="card-title">📚 My Subjects</div>
-      <a href="{{ url_for('manage_marks') }}" class="btn btn-primary btn-sm">Enter Marks</a>
+      <div class="card-title"><i data-lucide="book-open" class="ico"></i> My Subjects</div>
+      <a href="{{ url_for('manage_marks') }}" class="btn btn-primary btn-sm">Enter / Upload Marks</a>
     </div>
     {% for subj in subjects %}
     <div class="teacher-subj-row" style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
@@ -29,12 +29,12 @@
       <span>{{ subj.name }}</span>
     </div>
     {% else %}
-    <div class="empty-state"><div class="icon">📚</div><p>No subjects assigned yet.</p></div>
+    <div class="empty-state"><div class="icon"><i data-lucide="book-open" class="ico"></i></div><p>No subjects assigned yet.</p></div>
     {% endfor %}
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-title">📅 Today's Lessons</div>
+      <div class="card-title"><i data-lucide="calendar" class="ico"></i> Today's Lessons</div>
       <a href="{{ url_for('manage_timetable') }}" class="btn btn-secondary btn-sm">Full Timetable</a>
     </div>
     {% set today = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][now.weekday() if now is defined else 0] %}
@@ -46,7 +46,7 @@
       <span class="badge badge-success">{{ tt.start_time }}</span>
     </div>
     {% else %}
-    <div class="empty-state"><div class="icon">📅</div><p>No timetable slots added.</p></div>
+    <div class="empty-state"><div class="icon"><i data-lucide="calendar" class="ico"></i></div><p>No timetable slots added.</p></div>
     {% endfor %}
   </div>
 </div>

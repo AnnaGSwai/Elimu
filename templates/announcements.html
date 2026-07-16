@@ -20,7 +20,7 @@
 
 {% if current_user.role != 'parent' %}
 <div class="post-box">
-  <h3>📢 Post an Announcement</h3>
+  <h3><i data-lucide="megaphone" class="ico"></i> Post an Announcement</h3>
   <form method="POST" action="{{ url_for('create_announcement') }}">
     <div class="form-group">
       <label>Title</label>
@@ -51,23 +51,25 @@
 {% endif %}
 
 {% if announcements %}
+<div data-live-search=".announcement-card" data-live-search-placeholder="Search announcements…">
   {% for a in announcements %}
   <div class="announcement-card">
     <div class="meta">
-      <span>👤 {{ a.author.full_name }}</span>
-      <span>📅 {{ a.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+      <span><i data-lucide="user" class="ico"></i> {{ a.author.full_name }}</span>
+      <span><i data-lucide="calendar" class="ico"></i> {{ a.created_at.strftime('%d %b %Y, %H:%M') }}</span>
       <span class="tag">For: {{ {'all':'Everyone','parent':'Parents','teacher':'Teachers','accountant':'Accountants','schooladmin':'School Admins','sysadmin':'System Admins'}.get(a.target_role, a.target_role) }}</span>
     </div>
     <h3>{{ a.title }}</h3>
     <p>{{ a.content }}</p>
     {% if a.author_id == current_user.id or current_user.role == 'sysadmin' %}
-    <a href="{{ url_for('delete_announcement', aid=a.id) }}" class="del-link" onclick="return confirm('Delete this announcement?')">🗑 Delete</a>
+    <a href="{{ url_for('delete_announcement', aid=a.id) }}" class="del-link" onclick="return confirm('Delete this announcement?')"><i data-lucide="trash-2" class="ico"></i> Delete</a>
     {% endif %}
   </div>
   {% endfor %}
+</div>
 {% else %}
 <div class="empty-state" style="padding:48px 16px">
-  <div class="icon">📢</div>
+  <div class="icon"><i data-lucide="megaphone" class="ico"></i></div>
   <p>No announcements yet.</p>
 </div>
 {% endif %}

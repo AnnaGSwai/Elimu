@@ -11,7 +11,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f7f3;min-height:10
 .login-wrap{display:flex;width:840px;max-width:100%;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12)}
 .login-left{background:#1a6e3c;flex:1;padding:36px 32px;color:white;display:flex;flex-direction:column;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.brand-icon{width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.brand-icon{width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ico{width:16px;height:16px;stroke-width:2;vertical-align:middle;flex-shrink:0}
+.brand-icon .ico{width:22px;height:22px;color:#fff}
+.role-badge .ico{width:14px;height:14px;margin-right:4px;vertical-align:-2px}
 .brand-name{font-size:20px;font-weight:700}
 .brand-sub{font-size:11px;opacity:.7}
 .login-left h1{font-size:28px;font-weight:700;line-height:1.2;margin-bottom:10px}
@@ -25,15 +28,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#f0f7f3;min-height:10
 label{display:block;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
 input{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:9px;font-family:inherit;font-size:14px;outline:none;transition:border .15s;-webkit-appearance:none;appearance:none}
 input:focus{border-color:#1a6e3c;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
-.btn-login{width:100%;padding:13px;background:#1a6e3c;color:white;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s;touch-action:manipulation}
+.btn-login{width:100%;padding:13px;background:#1a6e3c;color:white;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .15s;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-login .ico{width:16px;height:16px;color:#fff}
 .btn-login:hover,.btn-login:active{background:#2d8f55}
 .alert{padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;background:#fde8e8;color:#c0392b;border:1px solid #f5c6c6}
-.demo-box{margin-top:20px;background:#f8fafc;border-radius:10px;padding:12px}
-.demo-box h4{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
-.demo-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;cursor:pointer;padding:4px 0}
-.demo-row:hover,.demo-row:active{color:#1a6e3c}
-.demo-role{font-weight:600;color:#374151}
-.demo-cred{color:#6b7280;font-family:monospace}
+.alert-success{background:#e8f5ee;color:#1a6e3c;border:1px solid #a7d9bc}
+.alert-danger{background:#fde8e8;color:#c0392b;border:1px solid #f5c6c6}
+.forgot-row{display:flex;justify-content:flex-end;margin:-4px 0 10px}
+.forgot-row a{color:#1a6e3c;font-size:13px;font-weight:600;text-decoration:none}
+.forgot-row a:hover{text-decoration:underline}
 @media(max-width:700px){
   .login-wrap{flex-direction:column;border-radius:14px}
   .login-left{padding:24px 20px}
@@ -56,7 +59,7 @@ input:focus{border-color:#1a6e3c;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
   <div class="login-left">
     <div>
       <div class="brand">
-        <div class="brand-icon">🎓</div>
+        <div class="brand-icon"><i data-lucide="graduation-cap" class="ico"></i></div>
         <div>
           <div class="brand-name">Elimu System</div>
           <div class="brand-sub">School Management Platform</div>
@@ -65,12 +68,12 @@ input:focus{border-color:#1a6e3c;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
       <h1>Manage your school smarter</h1>
       <p>A complete platform for schools — from admissions and fees to academic results and parent communication.</p>
       <div class="roles">
-        <div class="role-badge">📊 System Admin</div>
-        <div class="role-badge">🏫 School Admin</div>
-        <div class="role-badge">💳 Accountant</div>
-        <div class="role-badge">✏️ Teacher</div>
-        <div class="role-badge">👨‍👩‍👧 Parent</div>
-        <div class="role-badge">📋 Results & Reports</div>
+        <div class="role-badge"><i data-lucide="layout-dashboard" class="ico"></i> System Admin</div>
+        <div class="role-badge"><i data-lucide="school" class="ico"></i> School Admin</div>
+        <div class="role-badge"><i data-lucide="credit-card" class="ico"></i> Accountant</div>
+        <div class="role-badge"><i data-lucide="pencil" class="ico"></i> Teacher</div>
+        <div class="role-badge"><i data-lucide="users-round" class="ico"></i> Parent</div>
+        <div class="role-badge"><i data-lucide="clipboard-list" class="ico"></i> Results & Reports</div>
       </div>
     </div>
     <div style="opacity:.5;font-size:11px;margin-top:16px">© 2025 Elimu System Tanzania</div>
@@ -79,7 +82,7 @@ input:focus{border-color:#1a6e3c;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
     <h2>Welcome back</h2>
     <p>Sign in to your account</p>
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for cat, msg in messages %}<div class="alert">{{ msg }}</div>{% endfor %}
+      {% for cat, msg in messages %}<div class="alert alert-{{ cat if cat in ('success','danger') else 'danger' }}">{{ msg }}</div>{% endfor %}
     {% endwith %}
     <form method="POST">
       <div class="form-group">
@@ -90,23 +93,19 @@ input:focus{border-color:#1a6e3c;box-shadow:0 0 0 3px rgba(26,110,60,.08)}
         <label>Password</label>
         <input type="password" name="password" id="pw" placeholder="••••••••" required>
       </div>
-      <button class="btn-login">Sign In →</button>
+      <div class="forgot-row">
+        <a href="{{ url_for('parent_forgot_password') }}">Forgot password?</a>
+      </div>
+      <button class="btn-login">Sign In <i data-lucide="arrow-right" class="ico"></i></button>
     </form>
-    <div class="demo-box">
-      <h4>Demo Accounts — tap to fill</h4>
-      <div class="demo-row" onclick="fill('admin','admin123')"><span class="demo-role">System Admin</span><span class="demo-cred">admin / admin123</span></div>
-      <div class="demo-row" onclick="fill('schooladmin','admin123')"><span class="demo-role">School Admin</span><span class="demo-cred">schooladmin / admin123</span></div>
-      <div class="demo-row" onclick="fill('accountant','acc123')"><span class="demo-role">Accountant</span><span class="demo-cred">accountant / acc123</span></div>
-      <div class="demo-row" onclick="fill('teacher1','teacher123')"><span class="demo-role">Teacher</span><span class="demo-cred">teacher1 / teacher123</span></div>
-      <div class="demo-row" onclick="fill('parent1','parent123')"><span class="demo-role">Parent</span><span class="demo-cred">parent1 / parent123</span></div>
-    </div>
     <div style="text-align:center;margin-top:16px;font-size:13px;color:#6b7280">
-      Don't have an account? <a href="{{ url_for('register') }}" style="color:#1a6e3c;font-weight:700;text-decoration:none">Create an account →</a>
+      Don't have an account? <a href="{{ url_for('register') }}" style="color:#1a6e3c;font-weight:700;text-decoration:none">Create an account <i data-lucide="arrow-right" class="ico"></i></a>
     </div>
   </div>
 </div>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <script>
-function fill(u,p){document.getElementById('un').value=u;document.getElementById('pw').value=p}
+if (window.lucide) lucide.createIcons();
 </script>
 </body>
 </html>

@@ -54,14 +54,47 @@
 
 <div class="page-header">
   <div>
-    <h2 style="font-size:22px;font-weight:800">✏️ Mark Entry</h2>
-    <p style="color:#6b7280;font-size:13px;margin-top:2px">Enter marks by selecting subject, class and exam type</p>
+    <h2 style="font-size:22px;font-weight:800"><i data-lucide="pencil" class="ico"></i> Mark Entry</h2>
+    <p style="color:#6b7280;font-size:13px;margin-top:2px">Enter marks on screen <strong>or upload an Excel file</strong> below</p>
   </div>
+</div>
+
+<!-- Excel import / export — placed first so it is easy to find -->
+<div class="filter-card" style="border:2px dashed #1a6e3c;background:linear-gradient(180deg,#f0fdf4,#ffffff)">
+  <div style="font-weight:800;font-size:16px;margin-bottom:6px;color:#1a6e3c;display:flex;align-items:center;gap:8px">
+    <i data-lucide="file-spreadsheet" class="ico" style="width:20px;height:20px"></i> Upload results with Excel
+  </div>
+  <ol style="margin:0 0 14px 18px;padding:0;color:#374151;font-size:13px;line-height:1.55">
+    <li>Select <strong>Subject</strong> and <strong>Class</strong> in the filters below (and exam/term/year).</li>
+    <li>Click <strong>Download Template</strong> — students are pre-filled.</li>
+    <li>Enter scores in the <strong>score</strong> column (0–100), save the file.</li>
+    <li>Choose the file here and click <strong>Upload Excel</strong>.</li>
+  </ol>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    {% if sel_subject and sel_class %}
+    <a class="btn btn-secondary"
+       href="{{ url_for('download_marks_excel_template', subject_id=sel_subject, class_name=sel_class, exam_type=sel_exam, term=sel_term, year=sel_year) }}">
+      <i data-lucide="download" class="ico"></i> Download Template
+    </a>
+    {% else %}
+    <button type="button" class="btn btn-secondary" disabled title="Select subject and class first">
+      <i data-lucide="download" class="ico"></i> Download Template
+    </button>
+    <span style="font-size:12px;color:#b45309;font-weight:600">Select subject + class below to enable download</span>
+    {% endif %}
+  </div>
+  <form method="POST" action="{{ url_for('upload_marks_excel') }}" enctype="multipart/form-data"
+        style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid #bbf7d0">
+    <label style="font-size:12px;font-weight:700;color:#1a6e3c;text-transform:uppercase;letter-spacing:.4px">Excel file (.xlsx)</label>
+    <input type="file" name="excel_file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required
+           style="font-size:13px;flex:1;min-width:200px">
+    <button type="submit" class="btn btn-primary"><i data-lucide="upload" class="ico"></i> Upload Excel</button>
+  </form>
 </div>
 
 <!-- Filter Panel -->
 <div class="filter-card">
-  <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:#1c1c1e">🔍 Load Marklist</div>
+  <div style="font-weight:700;font-size:14px;margin-bottom:14px;color:#1c1c1e"><i data-lucide="search" class="ico"></i> Load Marklist (on-screen entry)</div>
   <form method="GET" id="filterForm">
     <div class="filter-row">
       <div class="fg">
@@ -118,7 +151,7 @@
   <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
     <div>
       <div style="font-weight:700;font-size:15px">
-        📋 {{ subj_obj.name if subj_obj else '' }} — {{ sel_class }} — 
+        <i data-lucide="clipboard-list" class="ico"></i> {{ subj_obj.name if subj_obj else '' }} — {{ sel_class }} — 
         <span style="color:#1a6e3c">{{ sel_exam }}</span>
       </div>
       <div style="font-size:12px;color:#6b7280;margin-top:2px">{{ sel_term }} {{ sel_year }} · {{ marklist_students|length }} students</div>
@@ -137,8 +170,8 @@
 
     <!-- Top save bar -->
     <div style="padding:12px 20px;background:#f8fff9;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
-      <div class="save-count">📝 Fill scores below (0–100). Leave blank to skip.</div>
-      <button type="submit" class="btn btn-primary" style="padding:9px 20px">💾 Save All Marks</button>
+      <div class="save-count"><i data-lucide="notebook-pen" class="ico"></i> Fill scores below (0–100). Leave blank to skip.</div>
+      <button type="submit" class="btn btn-primary" style="padding:9px 20px"><i data-lucide="save" class="ico"></i> Save All Marks</button>
     </div>
 
     <div class="ml-wrap" style="border-radius:0;border:none">
@@ -161,7 +194,7 @@
             <td><strong>{{ stud.full_name }}</strong></td>
             <td><code style="font-size:11px;color:#6b7280">{{ stud.adm_number }}</code></td>
             <td>
-              <span style="font-size:13px">{{ '♂' if stud.gender=='M' else '♀' }}</span>
+              <span style="font-size:13px">{% if stud.gender=='M' %}<i data-lucide="mars" class="ico"></i>{% else %}<i data-lucide="venus" class="ico"></i>{% endif %}</span>
               <span style="font-size:12px;color:#6b7280">{{ stud.gender }}</span>
             </td>
             <td style="text-align:center">
@@ -188,19 +221,19 @@
       <div class="save-count">
         <strong id="bottomCount">0</strong> scores filled
       </div>
-      <button type="submit" class="btn btn-primary">💾 Save All Marks</button>
+      <button type="submit" class="btn btn-primary"><i data-lucide="save" class="ico"></i> Save All Marks</button>
     </div>
   </form>
 </div>
 
 {% elif sel_subject or sel_class %}
 <div class="card" style="text-align:center;padding:40px 24px;color:#6b7280;margin-bottom:24px">
-  <div style="font-size:40px;margin-bottom:12px">🔍</div>
+  <div style="font-size:40px;margin-bottom:12px"><i data-lucide="search" class="ico"></i></div>
   <p style="font-size:14px">Select both a <strong>subject</strong> and a <strong>class</strong> to load the marklist.</p>
 </div>
 {% else %}
 <div class="card" style="text-align:center;padding:48px 24px;color:#6b7280;margin-bottom:24px;border:2px dashed #d1fae5">
-  <div style="font-size:44px;margin-bottom:14px">✏️</div>
+  <div style="font-size:44px;margin-bottom:14px"><i data-lucide="pencil" class="ico"></i></div>
   <div style="font-size:16px;font-weight:700;color:#1a6e3c;margin-bottom:6px">Start Entering Marks</div>
   <p style="font-size:13px">Select a subject and class above to load the student marklist.<br>You can enter marks for CAT 1, CAT 2, Midterm, and Final separately.</p>
 </div>
@@ -210,7 +243,7 @@
 {% if marks %}
 <details style="margin-top:8px">
   <summary style="cursor:pointer;font-weight:700;font-size:14px;color:#6b7280;list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0;user-select:none">
-    <span>📜</span> Recent Entries (last 50) <span style="font-size:12px;font-weight:400">(click to expand)</span>
+    <span><i data-lucide="scroll-text" class="ico"></i></span> Recent Entries (last 50) <span style="font-size:12px;font-weight:400">(click to expand)</span>
   </summary>
   <div class="card" style="padding:0;overflow:hidden;margin-top:12px">
     <div class="table-wrap">

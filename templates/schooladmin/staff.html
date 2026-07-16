@@ -1,15 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Staff — Elimu{% endblock %}
-{% block page_title %}Staff Management{% endblock %}
+{% block title %}School Users — Elimu{% endblock %}
+{% block page_title %}School Users{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>👨‍🏫 Staff & Parents</h2>
-  <button class="btn btn-primary" onclick="openModal('addStaff')">+ Add Account</button>
+  <h2><i data-lucide="presentation" class="ico"></i> School Users</h2>
+  <button type="button" class="btn btn-primary" onclick="openModal('addStaff')">+ Add Account</button>
 </div>
+<p style="color:var(--muted);font-size:13px;margin:-8px 0 16px">
+  Manage teachers, accountants, and parents for your school.
+</p>
 <div class="card">
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Full Name</th><th>Username</th><th>Role</th><th>Email</th><th>Status</th></tr></thead>
+      <thead><tr><th>Full Name</th><th>Username</th><th>Role</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody>
         {% for u in staff %}
         <tr>
@@ -17,10 +20,22 @@
           <td><code>{{ u.username }}</code></td>
           <td><span class="badge {% if u.role=='teacher' %}badge-info{% elif u.role=='accountant' %}badge-warning{% else %}badge-gray{% endif %}">{{ u.role }}</span></td>
           <td>{{ u.email or '—' }}</td>
+          <td>{{ u.phone or '—' }}</td>
           <td><span class="badge {{ 'badge-success' if u.active else 'badge-danger' }}">{{ 'Active' if u.active else 'Disabled' }}</span></td>
+          <td style="white-space:nowrap">
+            <button type="button" class="btn btn-sm btn-secondary btn-edit-staff"
+              data-id="{{ u.id }}"
+              data-full-name="{{ u.full_name or '' }}"
+              data-username="{{ u.username or '' }}"
+              data-role="{{ u.role or '' }}"
+              data-email="{{ u.email or '' }}"
+              data-phone="{{ u.phone or '' }}">
+              Edit
+            </button>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="5"><div class="empty-state"><div class="icon">👨‍🏫</div><p>No staff accounts yet. Add teachers, accountants or parents.</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><div class="icon"><i data-lucide="presentation" class="ico"></i></div><p>No school users yet. Add teachers, accountants or parents.</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -30,10 +45,10 @@
 <div class="modal-overlay" id="addStaff">
   <div class="modal">
     <div class="modal-header">
-      <h3>Create Staff / Parent Account</h3>
-      <button class="modal-close" onclick="closeModal('addStaff')">✕</button>
+      <h3>Create School User</h3>
+      <button type="button" class="modal-close" onclick="closeModal('addStaff')"><i data-lucide="x" class="ico"></i></button>
     </div>
-    <form method="POST">
+    <form method="POST" action="{{ url_for('manage_staff') }}">
       <div class="modal-body">
         <div class="form-group"><label>Role</label>
           <select name="role" required>
@@ -48,6 +63,7 @@
           <div class="form-group"><label>Username</label><input name="username" required placeholder="login username"></div>
         </div>
         <div class="form-group"><label>Email</label><input name="email" type="email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Phone (SMS)</label><input name="phone" type="tel" placeholder="+2557..."></div>
         <div class="form-group"><label>Password</label><input name="password" type="password" required placeholder="Set password"></div>
       </div>
       <div class="modal-footer">
@@ -57,4 +73,52 @@
     </form>
   </div>
 </div>
+
+<div class="modal-overlay" id="editStaff">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit School User</h3>
+      <button type="button" class="modal-close" onclick="closeModal('editStaff')"><i data-lucide="x" class="ico"></i></button>
+    </div>
+    <form method="POST" id="editStaffForm" action="">
+      <div class="modal-body">
+        <div class="form-group"><label>Role</label>
+          <select name="role" id="edit_role" required>
+            <option value="teacher">Teacher</option>
+            <option value="accountant">Accountant</option>
+            <option value="parent">Parent</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Full Name</label><input name="full_name" id="edit_full_name" required></div>
+          <div class="form-group"><label>Username</label><input name="username" id="edit_username" required></div>
+        </div>
+        <div class="form-group"><label>Email</label><input name="email" id="edit_email" type="email"></div>
+        <div class="form-group"><label>Phone (SMS)</label><input name="phone" id="edit_phone" type="tel"></div>
+        <div class="form-group"><label>New Password</label><input name="password" type="password" placeholder="Leave blank to keep current" autocomplete="new-password"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editStaff')">Cancel</button>
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.btn-edit-staff').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var id = btn.getAttribute('data-id');
+    document.getElementById('editStaffForm').action = '/schooladmin/staff/' + id + '/edit';
+    document.getElementById('edit_full_name').value = btn.getAttribute('data-full-name') || '';
+    document.getElementById('edit_username').value = btn.getAttribute('data-username') || '';
+    document.getElementById('edit_role').value = btn.getAttribute('data-role') || 'parent';
+    document.getElementById('edit_email').value = btn.getAttribute('data-email') || '';
+    document.getElementById('edit_phone').value = btn.getAttribute('data-phone') || '';
+    openModal('editStaff');
+  });
+});
+</script>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block page_title %}Invoice Management{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>🧾 Invoices</h2>
+  <h2><i data-lucide="file-text" class="ico"></i> Invoices</h2>
   <button class="btn btn-primary" onclick="openModal('addInvoice')">+ Create Invoice</button>
 </div>
 <div class="card">
@@ -22,14 +22,14 @@
           <td><span class="badge {% if inv.status=='paid' %}badge-success{% elif inv.status=='partial' %}badge-warning{% else %}badge-danger{% endif %}">{{ inv.status }}</span></td>
           <td>
             {% if inv.status != 'paid' %}
-            <a href="{{ url_for('generate_control_number', inv_id=inv.id) }}" class="btn btn-sm btn-info" onclick="return confirm('Generate control number for this invoice?')">🔢 Control No.</a>
+            <a href="{{ url_for('generate_control_number', inv_id=inv.id) }}" class="btn btn-sm btn-info" onclick="return confirm('Generate control number for this invoice?')"><i data-lucide="hash" class="ico"></i> Control No.</a>
             {% else %}
-            <span style="color:#aaa;font-size:12px">✅ Paid</span>
+            <span style="color:#aaa;font-size:12px"><i data-lucide="circle-check" class="ico"></i> Paid</span>
             {% endif %}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices created yet.</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><div class="icon"><i data-lucide="file-text" class="ico"></i></div><p>No invoices created yet.</p></div></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -40,7 +40,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Create Invoice</h3>
-      <button class="modal-close" onclick="closeModal('addInvoice')">✕</button>
+      <button class="modal-close" onclick="closeModal('addInvoice')"><i data-lucide="x" class="ico"></i></button>
     </div>
     <form method="POST">
       <div class="modal-body">
